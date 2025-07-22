@@ -1,6 +1,7 @@
 {
   "name": "zk-survey",
-  "version": "6.0.0",
+  "version": "1.0.0",
+  "private": true,
   "license": "MIT",
   "workspaces": [
     "packages/*",
@@ -8,6 +9,6 @@
   ],
   "packageManager": "yarn@1.22.22",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   }
 }
