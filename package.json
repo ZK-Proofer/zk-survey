@@ -1,12 +1,12 @@
 {
   "name": "zk-survey",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "license": "MIT",
   "workspaces": [
     "packages/*",
     "scripts"
   ],
-  "packageManager": "yarn@1.22.22",
+  "packageManager": "yarn@1.22",
   "engines": {
     "node": ">=20.0.0"
   }
