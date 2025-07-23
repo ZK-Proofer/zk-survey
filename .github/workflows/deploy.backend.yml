@@ -1,0 +1,61 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/backend/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/backend/**"
+
+jobs:
+  # PR에서 빌드 테스트
+  build-backend:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+          cache-dependency-path: "packages/backend/yarn.lock"
+
+      - name: Install dependencies
+        run: |
+          cd packages/backend
+          yarn install --frozen-lockfile
+
+      - name: Build backend
+        run: |
+          cd packages/backend
+          yarn build
+
+      - name: Run tests
+        run: |
+          cd packages/backend
+          yarn test
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd /var/www/zk-survey
+            git pull origin main
+            cd packages/backend
+            yarn install --frozen-lockfile
+            yarn build
+            pm2 reload ecosystem.config.js
