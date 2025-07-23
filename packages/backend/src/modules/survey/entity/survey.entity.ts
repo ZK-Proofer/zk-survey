@@ -1,7 +1,7 @@
 import { BaseEntity } from 'src/common/entity/base.entity';
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 import { Member } from 'src/modules/member/entity/member.entity';
-
+import { SurveyResult } from './survey-result.entity';
 @Entity('survey')
 export class Survey extends BaseEntity {
   @Column()
@@ -15,4 +15,7 @@ export class Survey extends BaseEntity {
 
   @Column()
   status: string;
+
+  @OneToMany(() => SurveyResult, (surveyResult) => surveyResult.survey)
+  surveyResults: SurveyResult[];
 }
