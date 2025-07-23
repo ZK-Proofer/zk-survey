@@ -71,7 +71,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /var/www/zk-survey
+            cd ${{ secrets.SERVER_PATH }}
             git pull origin main
             yarn install --frozen-lockfile
             cd packages/backend
