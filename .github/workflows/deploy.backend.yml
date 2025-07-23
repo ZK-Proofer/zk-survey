@@ -46,24 +46,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: "yarn"
-          cache-dependency-path: "yarn.lock"
-
-      - name: Install dependencies
-        run: |
-          yarn install --frozen-lockfile
-
-      - name: Build backend
-        run: |
-          cd packages/backend
-          yarn build
-
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
         with:
