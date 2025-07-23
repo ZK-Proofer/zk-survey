@@ -7,7 +7,7 @@ async function bootstrap() {
     if (process.send) {
       process.send('ready');
     }
-    console.log('application is listening');
+    console.log(`application is listening on ${process.env.PORT}`);
   });
 }
 bootstrap();
