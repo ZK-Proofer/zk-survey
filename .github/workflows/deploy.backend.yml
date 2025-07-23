@@ -24,11 +24,10 @@ jobs:
         with:
           node-version: "22"
           cache: "yarn"
-          cache-dependency-path: "packages/backend/yarn.lock"
+          cache-dependency-path: "yarn.lock"
 
       - name: Install dependencies
         run: |
-          cd packages/backend
           yarn install --frozen-lockfile
 
       - name: Build backend
@@ -41,11 +40,30 @@ jobs:
           cd packages/backend
           yarn test
 
+  # 백엔드 배포 (PM2) - main 브랜치 푸시 시에만
   deploy-backend:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+          cache-dependency-path: "yarn.lock"
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: Build backend
+        run: |
+          cd packages/backend
+          yarn build
+
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -55,7 +73,7 @@ jobs:
           script: |
             cd /var/www/zk-survey
             git pull origin main
-            cd packages/backend
             yarn install --frozen-lockfile
+            cd packages/backend
             yarn build
             pm2 reload ecosystem.config.js
