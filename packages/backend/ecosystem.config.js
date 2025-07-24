@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'zk-survey',
+      name: 'zk-survey-backend',
       script: './dist/main.js',
       instances: '1',
       exec_mode: 'cluster',
