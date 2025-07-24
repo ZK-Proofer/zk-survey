@@ -1,25 +1,27 @@
+import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
+import { Member } from '../../member/entity/member.entity';
 import { BaseEntity } from 'src/common/entity/base.entity';
-import { Column, Entity, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
-import { Member } from 'src/modules/member/entity/member.entity';
-import { SurveyResult } from './survey-result.entity';
+import { SurveyStatus } from '../const/survey-status.const';
+import { Question } from './question.entity';
 
-@Entity('survey')
+@Entity('surveys')
 export class Survey extends BaseEntity {
-  @ManyToOne(() => Member, {
-    nullable: false,
-  })
-  @JoinColumn()
-  author: Member;
+  @Column({ name: 'author_id' })
+  author_id: number;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column()
+  @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column()
-  status: string;
+  @Column({ type: 'enum', enum: SurveyStatus, default: SurveyStatus.DRAFT })
+  status: SurveyStatus;
 
-  @OneToMany(() => SurveyResult, (surveyResult) => surveyResult.survey)
-  surveyResults: SurveyResult[];
+  @ManyToOne(() => Member)
+  @JoinColumn({ name: 'author_id' })
+  author: Member;
+
+  @OneToMany(() => Question, (question) => question.survey)
+  questions: Question[];
 }
