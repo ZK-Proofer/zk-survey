@@ -10,6 +10,10 @@ interface SurveyInfo {
   author: {
     nickname: string;
   };
+  invitation: {
+    uuid: string;
+    status: string;
+  };
 }
 
 export default function SurveyPassword() {
@@ -29,7 +33,7 @@ export default function SurveyPassword() {
 
   const fetchSurveyInfo = async () => {
     try {
-      const response = await fetch(`/api/survey/${uuid}`);
+      const response = await fetch(`/api/survey/invitation/${uuid}`);
       if (response.ok) {
         const data = await response.json();
         setSurvey(data);

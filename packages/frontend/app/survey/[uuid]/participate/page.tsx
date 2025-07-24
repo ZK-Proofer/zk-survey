@@ -3,11 +3,19 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-interface Question {
-  id: string;
+interface QuestionOption {
+  id: number;
   text: string;
-  type: "text" | "multiple_choice" | "rating";
-  options?: string[];
+  order_index: number;
+}
+
+interface Question {
+  id: number;
+  text: string;
+  type: "TEXT" | "MULTIPLE_CHOICE" | "RATING";
+  order_index: number;
+  is_required: boolean;
+  options?: QuestionOption[];
 }
 
 interface SurveyData {
@@ -21,8 +29,10 @@ interface SurveyData {
 }
 
 interface Answer {
-  questionId: string;
+  questionId: number;
   answer: string;
+  selected_option_id?: number;
+  rating_value?: number;
 }
 
 export default function ParticipateSurvey() {
@@ -62,9 +72,18 @@ export default function ParticipateSurvey() {
     }
   };
 
-  const updateAnswer = (questionId: string, answer: string) => {
+  const updateAnswer = (
+    questionId: number,
+    answer: string,
+    selected_option_id?: number,
+    rating_value?: number
+  ) => {
     setAnswers((prev) =>
-      prev.map((a) => (a.questionId === questionId ? { ...a, answer } : a))
+      prev.map((a) =>
+        a.questionId === questionId
+          ? { ...a, answer, selected_option_id, rating_value }
+          : a
+      )
     );
   };
 
@@ -73,10 +92,16 @@ export default function ParticipateSurvey() {
     setIsSubmitting(true);
     setError("");
 
-    // Check if all questions are answered
-    const unansweredQuestions = answers.filter((a) => !a.answer.trim());
-    if (unansweredQuestions.length > 0) {
-      setError("Please answer all questions.");
+    // Check if all required questions are answered
+    const requiredQuestions =
+      survey?.questions.filter((q) => q.is_required) || [];
+    const unansweredRequired = answers.filter((a) => {
+      const question = requiredQuestions.find((q) => q.id === a.questionId);
+      return question && !a.answer.trim();
+    });
+
+    if (unansweredRequired.length > 0) {
+      setError("Please answer all required questions.");
       setIsSubmitting(false);
       return;
     }
@@ -108,19 +133,18 @@ export default function ParticipateSurvey() {
   };
 
   const renderQuestion = (question: Question, index: number) => {
-    const answer =
-      answers.find((a) => a.questionId === question.id)?.answer || "";
+    const answer = answers.find((a) => a.questionId === question.id);
 
     switch (question.type) {
-      case "text":
+      case "TEXT":
         return (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Answer *
+              Answer {question.is_required && "*"}
             </label>
             <textarea
-              required
-              value={answer}
+              required={question.is_required}
+              value={answer?.answer || ""}
               onChange={(e) => updateAnswer(question.id, e.target.value)}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -129,35 +153,38 @@ export default function ParticipateSurvey() {
           </div>
         );
 
-      case "multiple_choice":
+      case "MULTIPLE_CHOICE":
         return (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Answer *
+              Answer {question.is_required && "*"}
             </label>
             <div className="space-y-2">
-              {question.options?.map((option, optionIndex) => (
-                <label key={optionIndex} className="flex items-center">
+              {question.options?.map((option) => (
+                <label key={option.id} className="flex items-center">
                   <input
                     type="radio"
                     name={`question-${question.id}`}
-                    value={option}
-                    checked={answer === option}
-                    onChange={(e) => updateAnswer(question.id, e.target.value)}
+                    value={option.text}
+                    checked={answer?.answer === option.text}
+                    onChange={(e) =>
+                      updateAnswer(question.id, e.target.value, option.id)
+                    }
+                    required={question.is_required}
                     className="mr-2"
                   />
-                  <span className="text-gray-700">{option}</span>
+                  <span className="text-gray-700">{option.text}</span>
                 </label>
               ))}
             </div>
           </div>
         );
 
-      case "rating":
+      case "RATING":
         return (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Rating *
+              Rating {question.is_required && "*"}
             </label>
             <div className="flex space-x-2">
               {[1, 2, 3, 4, 5].map((rating) => (
@@ -166,8 +193,16 @@ export default function ParticipateSurvey() {
                     type="radio"
                     name={`question-${question.id}`}
                     value={rating.toString()}
-                    checked={answer === rating.toString()}
-                    onChange={(e) => updateAnswer(question.id, e.target.value)}
+                    checked={answer?.answer === rating.toString()}
+                    onChange={(e) =>
+                      updateAnswer(
+                        question.id,
+                        e.target.value,
+                        undefined,
+                        rating
+                      )
+                    }
+                    required={question.is_required}
                     className="mr-1"
                   />
                   <span className="text-gray-700">{rating}</span>
@@ -220,17 +255,22 @@ export default function ParticipateSurvey() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            {survey.questions.map((question, index) => (
-              <div
-                key={question.id}
-                className="border border-gray-200 rounded-lg p-6"
-              >
-                <h3 className="text-lg font-medium text-gray-900 mb-4">
-                  Question {index + 1}: {question.text}
-                </h3>
-                {renderQuestion(question, index)}
-              </div>
-            ))}
+            {survey.questions
+              .sort((a, b) => a.order_index - b.order_index)
+              .map((question, index) => (
+                <div
+                  key={question.id}
+                  className="border border-gray-200 rounded-lg p-6"
+                >
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                    Question {index + 1}: {question.text}
+                    {question.is_required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
+                  </h3>
+                  {renderQuestion(question, index)}
+                </div>
+              ))}
 
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-md p-3">
