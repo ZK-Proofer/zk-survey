@@ -50,6 +50,8 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd ${{ secrets.SERVER_PATH }}
+            git fetch --all
+            git reset --hard origin/main
             git pull origin main
             yarn install --frozen-lockfile
             cd packages/frontend
