@@ -1,20 +1,15 @@
-import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { Role } from '../const/role.const';
-@Entity('member')
-export class Member extends BaseEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+import { BaseEntity } from 'src/common/entity/base.entity';
+import { Column, Entity } from 'typeorm';
+import { MemberRole } from '../const/member-role.const';
 
-  @Column()
+@Entity('members')
+export class Member extends BaseEntity {
+  @Column({ type: 'varchar', length: 255 })
   nickname: string;
 
-  @Column()
+  @Column({ type: 'varchar', length: 255, unique: true })
   address: string;
 
-  @Column({
-    type: 'enum',
-    enum: Role,
-    default: Role.USER,
-  })
-  role: Role;
+  @Column({ type: 'enum', enum: MemberRole, default: MemberRole.USER })
+  role: MemberRole;
 }
