@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy backend
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
       - "packages/backend/**"
 
 jobs:
-  # PR에서 빌드 테스트
+  # build and test in pull request
   build-backend:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -40,7 +40,7 @@ jobs:
           cd packages/backend
           yarn test
 
-  # 백엔드 배포 (PM2) - main 브랜치 푸시 시에만
+  # deploy backend (PM2)
   deploy-backend:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
