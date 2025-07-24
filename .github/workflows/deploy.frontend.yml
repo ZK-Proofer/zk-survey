@@ -1,0 +1,57 @@
+name: Deploy frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/frontend/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/frontend/**"
+
+jobs:
+  # build and test in pull request
+  build-frontend:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "yarn"
+          cache-dependency-path: "yarn.lock"
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+
+      - name: Build frontend
+        run: |
+          cd packages/frontend
+          yarn build
+
+  # deploy frontend
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ${{ secrets.SERVER_PATH }}
+            git pull origin main
+            yarn install --frozen-lockfile
+            cd packages/frontend
+            yarn build
+            pm2 reload ecosystem.config.js
