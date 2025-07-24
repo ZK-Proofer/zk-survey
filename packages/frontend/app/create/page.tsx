@@ -12,8 +12,10 @@ interface SurveyForm {
 interface Question {
   id: string;
   text: string;
-  type: "text" | "multiple_choice" | "rating";
+  type: "TEXT" | "MULTIPLE_CHOICE" | "RATING";
   options?: string[];
+  order_index: number;
+  is_required: boolean;
 }
 
 export default function CreateSurvey() {
@@ -29,7 +31,9 @@ export default function CreateSurvey() {
     const newQuestion: Question = {
       id: Date.now().toString(),
       text: "",
-      type: "text",
+      type: "TEXT",
+      order_index: survey.questions.length,
+      is_required: true,
     };
     setSurvey((prev) => ({
       ...prev,
@@ -40,7 +44,7 @@ export default function CreateSurvey() {
   const updateQuestion = (
     id: string,
     field: keyof Question,
-    value: string | string[]
+    value: string | string[] | number | boolean
   ) => {
     setSurvey((prev) => ({
       ...prev,
@@ -53,7 +57,9 @@ export default function CreateSurvey() {
   const removeQuestion = (id: string) => {
     setSurvey((prev) => ({
       ...prev,
-      questions: prev.questions.filter((q) => q.id !== id),
+      questions: prev.questions
+        .filter((q) => q.id !== id)
+        .map((q, index) => ({ ...q, order_index: index })),
     }));
   };
 
@@ -196,15 +202,37 @@ export default function CreateSurvey() {
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="text">Text</option>
-                          <option value="multiple_choice">
+                          <option value="TEXT">Text</option>
+                          <option value="MULTIPLE_CHOICE">
                             Multiple Choice
                           </option>
-                          <option value="rating">Rating</option>
+                          <option value="RATING">Rating</option>
                         </select>
                       </div>
 
-                      {question.type === "multiple_choice" && (
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`required-${question.id}`}
+                          checked={question.is_required}
+                          onChange={(e) =>
+                            updateQuestion(
+                              question.id,
+                              "is_required",
+                              e.target.checked
+                            )
+                          }
+                          className="mr-2"
+                        />
+                        <label
+                          htmlFor={`required-${question.id}`}
+                          className="text-sm text-gray-700"
+                        >
+                          Required question
+                        </label>
+                      </div>
+
+                      {question.type === "MULTIPLE_CHOICE" && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Options (one per line)
