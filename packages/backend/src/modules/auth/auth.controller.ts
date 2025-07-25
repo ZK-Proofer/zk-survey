@@ -13,7 +13,7 @@ import {
   RefreshTokenDto,
 } from './dto/auth.dto';
 import { RefreshTokenGuard } from './guard/bearer-token.guard';
-import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
+import { LogInterceptor } from 'src/modules/common/interceptor/log.interceptor';
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

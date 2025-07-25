@@ -4,7 +4,7 @@ import { Member } from 'src/modules/member/entity/member.entity';
 import { MemberService } from 'src/modules/member/member.service';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { ENV_JWT_SECRET_KEY } from 'src/common/const/env-keys.const';
+import { ENV_JWT_SECRET_KEY } from 'src/modules/common/const/env-keys.const';
 import { ethers } from 'ethers';
 import { LoginResponseDto } from './dto/auth.dto';
 

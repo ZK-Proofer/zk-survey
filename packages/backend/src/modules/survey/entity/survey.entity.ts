@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Member } from '../../member/entity/member.entity';
-import { BaseEntity } from 'src/common/entity/base.entity';
+import { BaseEntity } from 'src/modules/common/entity/base.entity';
 import { SurveyStatus } from '../const/survey-status.const';
 import { Question } from './question.entity';
 

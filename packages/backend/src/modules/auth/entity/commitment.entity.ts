@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { SurveyInvitation } from '../../survey/entity/survey-invitation.entity';
-import { BaseEntity } from 'src/common/entity/base.entity';
+import { BaseEntity } from 'src/modules/common/entity/base.entity';
 
 @Entity('commitments')
 export class Commitment extends BaseEntity {
