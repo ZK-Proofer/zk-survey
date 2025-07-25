@@ -9,7 +9,6 @@ import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
 import { SurveyStatus } from './const/survey-status.const';
 import { QuestionType } from './const/question-type.const';
 import { InvitationStatus } from './const/invitation-status.const';
-import { Member } from '../member/entity/member.entity';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -228,16 +227,14 @@ export class SurveyService {
       throw new Error('Survey author relation is not loaded');
     }
 
-    const author = survey.author as Member;
-
     return {
       id: survey.id,
       title: survey.title,
       description: survey.description,
       status: survey.status,
       author: {
-        id: author.id,
-        nickname: author.nickname,
+        id: survey.author.id,
+        nickname: survey.author.nickname,
       },
       questions: questions.map((q) => ({
         id: q.id,
