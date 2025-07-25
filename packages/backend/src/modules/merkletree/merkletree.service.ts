@@ -2,9 +2,10 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { IMT, IMTNode } from '@zk-kit/imt';
 import { Fr, BarretenbergSync } from '@aztec/bb.js';
 import { MERKLE_ARITY } from 'src/modules/merkletree/const/merkle.const';
-import { MerkleTree } from './entyty/merkle-tree.entity';
+import { MerkleTree } from './entity/merkle-tree.entity';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { MerkleTreeLeavesDto } from './dto/merkletree.dto';
 
 @Injectable()
 export class MerkleTreeService implements OnModuleInit {
@@ -71,11 +72,19 @@ export class MerkleTreeService implements OnModuleInit {
     );
   }
 
-  async getProofData(surveyId: number, leaf: IMTNode) {
-    const mt = await this.getTree(surveyId);
-    const index = mt.indexOf(leaf);
-    if (index === -1) throw new Error('Leaf not found');
-    const proof = mt.createProof(index);
-    return { merkleIndex: index, merkleProof: proof };
+  async getLeaves(surveyId: number): Promise<MerkleTreeLeavesDto> {
+    const treeInfo = await this.merkleTreeRepository.findOneBy({
+      survey_id: surveyId,
+    });
+    if (!treeInfo) return { leaves: [] };
+
+    let leaves: string[] = [];
+    try {
+      leaves = JSON.parse(treeInfo.leaves);
+    } catch (error) {
+      throw new Error(`Failed to parse leaves from db: ${error}`);
+    }
+
+    return { leaves };
   }
 }
