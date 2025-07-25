@@ -1,23 +1,19 @@
 import { IsString, IsNotEmpty, IsOptional, IsObject } from 'class-validator';
 
-export class MetaMaskLoginDto {
+export class GoogleLoginDto {
   @IsString()
   @IsNotEmpty()
-  address: string;
+  code: string;
 
   @IsString()
   @IsNotEmpty()
-  signature: string;
-
-  @IsString()
-  @IsNotEmpty()
-  message: string;
+  redirectUri: string;
 }
 
 export class CreateMemberDto {
   @IsString()
   @IsNotEmpty()
-  address: string;
+  email: string;
 
   @IsString()
   @IsOptional()
@@ -36,7 +32,7 @@ export class LoginResponseDto {
   @IsObject()
   @IsNotEmpty()
   member: {
-    address: string;
+    email: string;
     nickname: string;
   };
 }
@@ -49,7 +45,7 @@ export class RefreshTokenDto {
 
 export class TokenPayload {
   sub: number;
-  address: string;
+  email: string;
   role: string;
   type: 'access' | 'refresh';
 }

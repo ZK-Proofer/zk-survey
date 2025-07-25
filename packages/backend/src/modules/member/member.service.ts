@@ -1,3 +1,4 @@
+import { CreateMemberDto } from './../auth/dto/auth.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,11 +15,15 @@ export class MemberService {
     return this.memberRepository.findOne({ where: { id } });
   }
 
-  async getMemberByAddress(address: string): Promise<Member | null> {
-    return this.memberRepository.findOne({ where: { address } });
+  async getMemberByEmail(email: string): Promise<Member | null> {
+    return this.memberRepository.findOne({ where: { email } });
   }
 
-  async createMember(member: Member): Promise<Member> {
+  async createMember(createMemberDto: CreateMemberDto): Promise<Member> {
+    const member = this.memberRepository.create({
+      email: createMemberDto.email,
+      nickname: createMemberDto.nickname,
+    });
     return this.memberRepository.save(member);
   }
 }

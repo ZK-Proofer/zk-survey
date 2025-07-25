@@ -4,14 +4,36 @@ import { Member } from 'src/modules/member/entity/member.entity';
 import { MemberService } from 'src/modules/member/member.service';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
-import { ENV_JWT_SECRET_KEY } from 'src/modules/common/const/env-keys.const';
-import { ethers } from 'ethers';
+import {
+  ENV_JWT_SECRET_KEY,
+  ENV_GOOGLE_CLIENT_ID_KEY,
+  ENV_GOOGLE_CLIENT_SECRET_KEY,
+} from 'src/modules/common/const/env-keys.const';
 import { LoginResponseDto } from './dto/auth.dto';
+import axios from 'axios';
 
 interface JwtPayload {
-  address: string;
+  email: string;
   sub: number;
   type: 'access' | 'refresh';
+}
+
+interface GoogleTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+}
+
+interface GoogleUserInfo {
+  email: string;
+  name: string;
+  picture: string;
+  sub: string;
+}
+
+interface GoogleErrorResponse {
+  error: string;
+  error_description: string;
 }
 
 @Injectable()
@@ -22,20 +44,64 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  async loginWithAddress(
-    address: string,
-    message: string,
-    signature: string,
+  async loginWithGoogle(
+    code: string,
+    redirectUri: string,
   ): Promise<LoginResponseDto> {
-    const recoveredAddress = ethers.verifyMessage(message, signature);
-    if (recoveredAddress.toLowerCase() !== address.toLowerCase()) {
-      throw new UnauthorizedException('invalid signature');
+    const clientId = this.configService.get<string>(ENV_GOOGLE_CLIENT_ID_KEY);
+    const clientSecret = this.configService.get<string>(
+      ENV_GOOGLE_CLIENT_SECRET_KEY,
+    );
+
+    if (!clientId || !clientSecret) {
+      throw new UnauthorizedException('Google OAuth configuration missing');
     }
-    const existingUser = await this.memberService.getMemberByAddress(address);
-    if (!existingUser) {
-      throw new UnauthorizedException('user not found');
+
+    const params = `client_id=${clientId}&client_secret=${clientSecret}&code=${code}&grant_type=authorization_code&redirect_uri=${redirectUri}`;
+
+    try {
+      const response = await axios.post<GoogleTokenResponse>(
+        'https://oauth2.googleapis.com/token',
+        params,
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+
+      console.log(response.data);
+
+      const userInfo = await axios.get<GoogleUserInfo>(
+        'https://www.googleapis.com/oauth2/v2/userinfo',
+        {
+          headers: {
+            Authorization: `Bearer ${response.data.access_token}`,
+          },
+        },
+      );
+
+      console.log(userInfo.data);
+      let member = await this.memberService.getMemberByEmail(
+        userInfo.data.email,
+      );
+      if (!member) {
+        member = await this.memberService.createMember({
+          email: userInfo.data.email,
+          nickname: userInfo.data.name,
+        });
+      }
+      return this.loginUser(member);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response) {
+        const errorData = error.response.data as GoogleErrorResponse;
+        throw new UnauthorizedException(
+          `Google OAuth error: ${errorData.error} - ${errorData.error_description}`,
+        );
+      }
+      console.log(error);
+      throw new UnauthorizedException('Failed to authenticate with Google');
     }
-    return this.loginUser(existingUser);
   }
 
   loginUser(user: Member): LoginResponseDto {
@@ -43,18 +109,18 @@ export class AuthService {
       accessToken: this.signToken(user, false),
       refreshToken: this.signToken(user, true),
       member: {
-        address: user.address,
+        email: user.email,
         nickname: user.nickname,
       },
     };
   }
 
   signToken(
-    user: Pick<Member, 'id' | 'address'>,
+    user: Pick<Member, 'id' | 'email'>,
     isRefreshToken: boolean,
   ): string {
     const payload: JwtPayload = {
-      address: user.address,
+      email: user.email,
       sub: user.id,
       type: isRefreshToken ? 'refresh' : 'access',
     };
@@ -99,7 +165,7 @@ export class AuthService {
     return this.signToken(
       {
         id: payload.sub,
-        address: payload.address,
+        email: payload.email,
       },
       isRefreshToken,
     );
