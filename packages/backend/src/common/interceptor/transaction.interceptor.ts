@@ -8,14 +8,17 @@ import {
 import { DataSource, QueryRunner } from 'typeorm';
 import { Observable, catchError, tap, finalize } from 'rxjs';
 import { Request } from 'express';
-
+import { InjectDataSource } from '@nestjs/typeorm';
 export interface RequestWithQueryRunner extends Request {
   queryRunner: QueryRunner;
 }
 
 @Injectable()
 export class TransactionInterceptor implements NestInterceptor {
-  constructor(private readonly datasource: DataSource) {}
+  constructor(
+    @InjectDataSource('default')
+    private readonly datasource: DataSource,
+  ) {}
 
   async intercept(
     context: ExecutionContext,

@@ -1,9 +1,10 @@
-import { Entity, Column, BaseEntity, ManyToOne, PrimaryColumn } from 'typeorm';
+import { Entity, Column, ManyToOne } from 'typeorm';
 import { Survey } from 'src/modules/survey/entity/survey.entity';
+import { BaseEntity } from 'src/common/entity/base.entity';
 
 @Entity('merkle_tree')
 export class MerkleTree extends BaseEntity {
-  @PrimaryColumn({ type: 'int' })
+  @Column({ type: 'int' })
   survey_id: number;
 
   @Column({ type: 'int' })
@@ -12,6 +13,6 @@ export class MerkleTree extends BaseEntity {
   @Column({ type: 'mediumtext' })
   leaves: string;
 
-  @ManyToOne(() => Survey, (survey) => survey.id)
+  @ManyToOne(() => Survey)
   survey: Survey;
 }

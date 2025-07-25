@@ -12,11 +12,15 @@ export class MemberService {
   ) {}
 
   async getMemberById(id: number): Promise<Member | null> {
-    return this.memberRepository.findOne({ where: { id } });
+    return await this.memberRepository.findOne({
+      where: { id },
+    });
   }
 
   async getMemberByEmail(email: string): Promise<Member | null> {
-    return this.memberRepository.findOne({ where: { email } });
+    return await this.memberRepository.findOne({
+      where: { email },
+    });
   }
 
   async createMember(createMemberDto: CreateMemberDto): Promise<Member> {
@@ -24,6 +28,6 @@ export class MemberService {
       email: createMemberDto.email,
       nickname: createMemberDto.nickname,
     });
-    return this.memberRepository.save(member);
+    return await this.memberRepository.save(member);
   }
 }

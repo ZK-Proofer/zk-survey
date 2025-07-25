@@ -13,13 +13,13 @@ import {
   RefreshTokenDto,
 } from './dto/auth.dto';
 import { RefreshTokenGuard } from './guard/bearer-token.guard';
-import { LogInterceptor } from '../../common/interceptor/log.interceptor';
+import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @UseInterceptors(LogInterceptor)
+  @UseInterceptors(TransactionInterceptor)
   async loginWithGoogle(
     @Body() loginDto: GoogleLoginDto,
   ): Promise<LoginResponseDto> {
