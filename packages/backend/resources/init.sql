@@ -31,7 +31,7 @@ CREATE TABLE `questions` (
   `id` int NOT NULL AUTO_INCREMENT,
   `survey_id` int NOT NULL,
   `text` text NOT NULL,
-  `type` enum('TEXT', 'MULTIPLE_CHOICE', 'RATING') NOT NULL DEFAULT 'TEXT',
+  `type` enum('TEXT', 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'RATING') NOT NULL DEFAULT 'TEXT',
   `order_index` int NOT NULL DEFAULT 0,
   `is_required` boolean NOT NULL DEFAULT true,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

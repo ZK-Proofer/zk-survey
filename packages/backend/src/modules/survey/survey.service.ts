@@ -70,6 +70,10 @@ export class SurveyService {
       throw new Error('Failed to create survey');
     }
 
+    if (!surveyWithAuthor.author) {
+      throw new Error('Survey author relation is not loaded');
+    }
+
     const questions: Question[] = [];
     for (let i = 0; i < createSurveyDto.questions.length; i++) {
       const questionDto = createSurveyDto.questions[i];
