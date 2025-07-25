@@ -51,7 +51,7 @@ export class VerifyService {
 
     const repository = qr.manager.getRepository(Verification);
     const newRow = repository.create({
-      nullifier_hash: nulifier[1],
+      nullifier_hash: nulifier,
     });
 
     return {
