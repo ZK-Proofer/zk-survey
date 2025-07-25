@@ -1,0 +1,20 @@
+import {
+  createParamDecorator,
+  ExecutionContext,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { RequestWithQueryRunner } from '../interceptor/transaction.interceptor';
+
+export const QueryRunner = createParamDecorator(
+  (_data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<RequestWithQueryRunner>();
+
+    if (!request.queryRunner) {
+      throw new InternalServerErrorException(
+        'There is no queryRunner in the request',
+      );
+    }
+
+    return request.queryRunner;
+  },
+);
