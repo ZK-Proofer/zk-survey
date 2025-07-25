@@ -72,9 +72,13 @@ export class MerkleTreeService implements OnModuleInit {
   }
 
   async getLeaves(surveyId: number): Promise<MerkleTreeLeavesDto> {
-    const treeInfo = await this.merkleTreeRepository.findOneBy({
-      survey_id: surveyId,
+    const treeInfo = await this.merkleTreeRepository.findOne({
+      where: {
+        survey_id: surveyId,
+      },
+      select: ['leaves'],
     });
+
     if (!treeInfo) return { leaves: [] };
 
     let leaves: string[] = [];
