@@ -10,6 +10,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { SurveyModule } from './modules/survey/survey.module';
 import { Member } from './modules/member/entity/member.entity';
 import { Survey } from './modules/survey/entity/survey.entity';
 import { Question } from './modules/survey/entity/question.entity';
@@ -25,9 +26,12 @@ import {
   ENV_DB_USERNAME_KEY,
   ENV_DB_PASSWORD_KEY,
   ENV_DB_DATABASE_KEY,
-} from './common/const/env-keys.const';
+} from './modules/common/const/env-keys.const';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { LogMiddleware } from './common/middleware/log.middleware';
+import { LogMiddleware } from './modules/common/middleware/log.middleware';
+import { MemberModule } from './modules/member/member.module';
+import { VerifyModule } from './modules/verify/verify.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -55,6 +59,9 @@ import { LogMiddleware } from './common/middleware/log.middleware';
       synchronize: false,
     }),
     AuthModule,
+    SurveyModule,
+    MemberModule,
+    VerifyModule,
   ],
   controllers: [AppController],
   providers: [
@@ -64,6 +71,7 @@ import { LogMiddleware } from './common/middleware/log.middleware';
       useClass: ClassSerializerInterceptor,
     },
   ],
+  exports: [TypeOrmModule],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

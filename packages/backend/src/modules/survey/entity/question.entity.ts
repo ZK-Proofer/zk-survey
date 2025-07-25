@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { BaseEntity } from 'src/common/entity/base.entity';
+import { BaseEntity } from 'src/modules/common/entity/base.entity';
 import { QuestionType } from '../const/question-type.const';
 import { QuestionOption } from './question-option.entity';
 import { Survey } from './survey.entity';

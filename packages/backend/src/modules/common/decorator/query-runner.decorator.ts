@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { RequestWithQueryRunner } from '../interceptor/transaction.interceptor';
 
-export const QueryRunner = createParamDecorator(
+export const QueryRunnerDecorator = createParamDecorator(
   (_data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<RequestWithQueryRunner>();
 

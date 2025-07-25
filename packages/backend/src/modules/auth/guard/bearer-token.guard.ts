@@ -9,8 +9,8 @@ import { Request } from 'express';
 import { Member } from 'src/modules/member/entity/member.entity';
 import { MemberService } from 'src/modules/member/member.service';
 
-export interface RequestWithUser extends Request {
-  user: Member;
+export interface RequestWithMember extends Request {
+  member: Member;
   token: string;
   tokenType: 'access' | 'refresh';
 }
@@ -23,7 +23,7 @@ export class BearerTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const request = context.switchToHttp().getRequest<RequestWithMember>();
     const rawToken = request.headers.authorization;
 
     if (!rawToken) {
@@ -32,13 +32,13 @@ export class BearerTokenGuard implements CanActivate {
 
     const token = this.authService.extractTokenFromHeader(rawToken, true);
     const payload = this.authService.verifyToken(token);
-    const user = await this.memberService.getMemberById(payload.sub);
+    const member = await this.memberService.getMemberById(payload.sub);
 
-    if (!user) {
-      throw new UnauthorizedException('user not found');
+    if (!member) {
+      throw new UnauthorizedException('member not found');
     }
 
-    request.user = user;
+    request.member = member;
     request.token = token;
     request.tokenType = payload.type;
 
@@ -55,7 +55,7 @@ export class AccessTokenGuard extends BearerTokenGuard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     await super.canActivate(context);
 
-    const req = context.switchToHttp().getRequest<RequestWithUser>();
+    const req = context.switchToHttp().getRequest<RequestWithMember>();
 
     if (req.tokenType !== 'access') {
       throw new UnauthorizedException('request with access token');
@@ -74,7 +74,7 @@ export class RefreshTokenGuard extends BearerTokenGuard {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     await super.canActivate(context);
 
-    const req = context.switchToHttp().getRequest<RequestWithUser>();
+    const req = context.switchToHttp().getRequest<RequestWithMember>();
 
     if (req.tokenType !== 'refresh') {
       throw new UnauthorizedException('request with refresh token');
