@@ -5,12 +5,12 @@ use zk_survey;
 CREATE TABLE `members` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nickname` varchar(255) NOT NULL,
-  `address` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
   `role` enum('ADMIN', 'USER') NOT NULL DEFAULT 'USER',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_members_address` (`address`)
+  UNIQUE KEY `uk_members_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Surveys (Main Survey Information)

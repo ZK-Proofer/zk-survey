@@ -8,7 +8,7 @@ export class Member extends BaseEntity {
   nickname: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  address: string;
+  email: string;
 
   @Column({ type: 'enum', enum: MemberRole, default: MemberRole.USER })
   role: MemberRole;
