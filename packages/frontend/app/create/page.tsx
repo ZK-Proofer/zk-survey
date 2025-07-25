@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 interface SurveyForm {
@@ -12,7 +12,7 @@ interface SurveyForm {
 interface Question {
   id: string;
   text: string;
-  type: "TEXT" | "MULTIPLE_CHOICE" | "RATING";
+  type: "TEXT" | "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "RATING";
   options?: string[];
   order_index: number;
   is_required: boolean;
@@ -26,6 +26,29 @@ export default function CreateSurvey() {
     questions: [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    // 로그인 상태 확인
+    const accessToken = localStorage.getItem("accessToken");
+    const userData = localStorage.getItem("user");
+
+    if (!accessToken || !userData) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      setUser(JSON.parse(userData));
+    } catch (error) {
+      console.error("Failed to parse user data:", error);
+      router.push("/login");
+      return;
+    }
+
+    setIsLoading(false);
+  }, [router]);
 
   const addQuestion = () => {
     const newQuestion: Question = {
@@ -63,24 +86,50 @@ export default function CreateSurvey() {
     }));
   };
 
+  const transformSurveyForBackend = (survey: SurveyForm) => {
+    return {
+      title: survey.title,
+      description: survey.description,
+      questions: survey.questions.map((q) => ({
+        text: q.text,
+        type: q.type,
+        order_index: q.order_index,
+        is_required: q.is_required,
+        options: q.options?.map((option, index) => ({
+          text: option,
+          order_index: index,
+        })),
+      })),
+    };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/survey", {
+      const accessToken = localStorage.getItem("accessToken");
+      const backendUrl =
+        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111";
+
+      const transformedSurvey = transformSurveyForBackend(survey);
+      console.log("Transformed survey for backend:", transformedSurvey);
+
+      const response = await fetch(`${backendUrl}/api/v1/survey`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify(survey),
+        body: JSON.stringify(transformedSurvey),
       });
 
       if (response.ok) {
         const result = await response.json();
         router.push(`/survey/${result.id}/success`);
       } else {
-        alert("Failed to create survey.");
+        const errorData = await response.json();
+        alert(errorData.message || "Failed to create survey.");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -90,13 +139,29 @@ export default function CreateSurvey() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Create New Survey
-          </h1>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Create New Survey
+            </h1>
+            <div className="text-sm text-gray-600">
+              Welcome, {user?.nickname || user?.email}!
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Basic Information */}
@@ -112,7 +177,7 @@ export default function CreateSurvey() {
                   onChange={(e) =>
                     setSurvey((prev) => ({ ...prev, title: e.target.value }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                   placeholder="Enter survey title"
                 />
               </div>
@@ -130,7 +195,7 @@ export default function CreateSurvey() {
                     }))
                   }
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                   placeholder="Enter survey description"
                 />
               </div>
@@ -182,7 +247,7 @@ export default function CreateSurvey() {
                           onChange={(e) =>
                             updateQuestion(question.id, "text", e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                           placeholder="Enter your question"
                         />
                       </div>
@@ -200,9 +265,10 @@ export default function CreateSurvey() {
                               e.target.value as any
                             )
                           }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                         >
                           <option value="TEXT">Text</option>
+                          <option value="SINGLE_CHOICE">Single Choice</option>
                           <option value="MULTIPLE_CHOICE">
                             Multiple Choice
                           </option>
@@ -232,7 +298,8 @@ export default function CreateSurvey() {
                         </label>
                       </div>
 
-                      {question.type === "MULTIPLE_CHOICE" && (
+                      {(question.type === "SINGLE_CHOICE" ||
+                        question.type === "MULTIPLE_CHOICE") && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Options (one per line)
@@ -247,7 +314,7 @@ export default function CreateSurvey() {
                               )
                             }
                             rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                             placeholder="Enter options, one per line"
                           />
                         </div>

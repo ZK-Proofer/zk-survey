@@ -1,7 +1,7 @@
 import { Entity, Column, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { Survey } from './survey.entity';
 import { ResponseAnswer } from './response-answer.entity';
-import { BaseEntity } from 'src/modules/common/entity/base.entity';
+import { BaseEntity } from 'src/common/entity/base.entity';
 
 @Entity('survey_responses')
 export class SurveyResponse extends BaseEntity {

@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { SurveyResponse } from '../../survey/entity/survey-response.entity';
-import { BaseEntity } from 'src/modules/common/entity/base.entity';
+import { BaseEntity } from '../../../common/entity/base.entity';
 
 @Entity('verifications')
 export class Verification extends BaseEntity {

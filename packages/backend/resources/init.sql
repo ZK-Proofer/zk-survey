@@ -47,6 +47,7 @@ CREATE TABLE `question_options` (
   `text` varchar(255) NOT NULL,
   `order_index` int NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_question_options_question_id` (`question_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -75,6 +76,7 @@ CREATE TABLE `commitments` (
   `uuid` varchar(36) NOT NULL,
   `commitment_hash` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_commitments_hash` (`commitment_hash`),
   KEY `idx_commitments_invitation_id` (`invitation_id`),
@@ -86,7 +88,8 @@ CREATE TABLE `survey_responses` (
   `id` int NOT NULL AUTO_INCREMENT,
   `survey_id` int NOT NULL,
   `nullifier_hash` varchar(255) NOT NULL,
-  `submitted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_responses_nullifier` (`nullifier_hash`),
   KEY `idx_responses_survey_id` (`survey_id`)
@@ -101,6 +104,7 @@ CREATE TABLE `response_answers` (
   `selected_option_id` int NULL,
   `rating_value` int NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_answers_response_id` (`response_id`),
   KEY `idx_answers_question_id` (`question_id`),
@@ -112,7 +116,8 @@ CREATE TABLE `verifications` (
   `id` int NOT NULL AUTO_INCREMENT,
   `response_id` int NOT NULL,
   `nullifier_hash` varchar(255) NOT NULL,
-  `verified_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_verifications_response` (`response_id`),
   KEY `idx_verifications_response_id` (`response_id`)
@@ -123,7 +128,6 @@ CREATE INDEX `idx_surveys_status` ON `surveys` (`status`);
 CREATE INDEX `idx_surveys_created_at` ON `surveys` (`created_at`);
 CREATE INDEX `idx_questions_order` ON `questions` (`survey_id`, `order_index`);
 CREATE INDEX `idx_invitations_status` ON `survey_invitations` (`status`);
-CREATE INDEX `idx_responses_submitted_at` ON `survey_responses` (`submitted_at`); 
 
 -- Merkle Tree
 CREATE TABLE `merkle_tree` (

@@ -1,12 +1,11 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { IMT, IMTNode } from '@zk-kit/imt';
 import { Fr, BarretenbergSync } from '@aztec/bb.js';
-import { MERKLE_ARITY } from 'src/modules/merkletree/const/merkle.const';
-import { MerkleTree } from './entity/merkle-tree.entity';
+import { MERKLE_ARITY } from './const/merkle.const';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { MerkleTree } from './entity/merkle-tree.entity';
 import { MerkleTreeLeavesDto } from './dto/merkletree.dto';
-
 @Injectable()
 export class MerkleTreeService implements OnModuleInit {
   private hashFn: (inputs: IMTNode[]) => IMTNode;

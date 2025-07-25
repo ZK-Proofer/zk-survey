@@ -1,14 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Member } from 'src/modules/member/entity/member.entity';
-import { MemberService } from 'src/modules/member/member.service';
+import { Member } from '../member/entity/member.entity';
+import { MemberService } from '../member/member.service';
 import { JsonWebTokenError } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import {
   ENV_JWT_SECRET_KEY,
   ENV_GOOGLE_CLIENT_ID_KEY,
   ENV_GOOGLE_CLIENT_SECRET_KEY,
-} from 'src/modules/common/const/env-keys.const';
+} from '../../common/const/env-keys.const';
 import { LoginResponseDto } from './dto/auth.dto';
 import axios from 'axios';
 
@@ -70,8 +70,6 @@ export class AuthService {
         },
       );
 
-      console.log(response.data);
-
       const userInfo = await axios.get<GoogleUserInfo>(
         'https://www.googleapis.com/oauth2/v2/userinfo',
         {
@@ -81,7 +79,6 @@ export class AuthService {
         },
       );
 
-      console.log(userInfo.data);
       let member = await this.memberService.getMemberByEmail(
         userInfo.data.email,
       );
@@ -99,7 +96,6 @@ export class AuthService {
           `Google OAuth error: ${errorData.error} - ${errorData.error_description}`,
         );
       }
-      console.log(error);
       throw new UnauthorizedException('Failed to authenticate with Google');
     }
   }

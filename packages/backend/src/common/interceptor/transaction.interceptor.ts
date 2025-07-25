@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   InternalServerErrorException,
   NestInterceptor,
+  Injectable,
 } from '@nestjs/common';
 import { DataSource, QueryRunner } from 'typeorm';
 import { Observable, catchError, tap, finalize } from 'rxjs';
@@ -12,6 +13,7 @@ export interface RequestWithQueryRunner extends Request {
   queryRunner: QueryRunner;
 }
 
+@Injectable()
 export class TransactionInterceptor implements NestInterceptor {
   constructor(private readonly datasource: DataSource) {}
 

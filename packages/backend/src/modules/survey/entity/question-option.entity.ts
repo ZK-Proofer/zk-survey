@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Question } from './question.entity';
-import { BaseEntity } from 'src/modules/common/entity/base.entity';
+import { BaseEntity } from 'src/common/entity/base.entity';
 
 @Entity('question_options')
 export class QuestionOption extends BaseEntity {

@@ -5,6 +5,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { Member } from '../member/entity/member.entity';
 import { MemberModule } from '../member/member.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Member]),

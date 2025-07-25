@@ -24,3 +24,30 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* 입력 필드 텍스트 색상 개선 */
+input,
+textarea,
+select {
+  color: #1f2937 !important;
+  font-weight: 500;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+  font-weight: 400;
+}
+
+/* 포커스 상태에서 더 진한 색상 */
+input:focus,
+textarea:focus,
+select:focus {
+  color: #111827 !important;
+}
+
+/* 라벨 텍스트 색상 개선 */
+label {
+  color: #374151 !important;
+  font-weight: 600;
+}

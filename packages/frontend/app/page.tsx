@@ -1,6 +1,44 @@
+"use client";
+
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        console.error("Failed to parse user data:", error);
+      }
+    }
+    setIsLoading(false);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -10,13 +48,35 @@ export default function Home() {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">ZK Survey</h1>
             </div>
-            <nav className="flex space-x-8">
-              <Link
-                href="/create"
-                className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Create Survey
-              </Link>
+            <nav className="flex space-x-8 items-center">
+              {user ? (
+                <>
+                  <Link
+                    href="/create"
+                    className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                  >
+                    Create Survey
+                  </Link>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-600">
+                      Welcome, {user.nickname || user.email}!
+                    </span>
+                    <button
+                      onClick={handleLogout}
+                      className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Login
+                </Link>
+              )}
             </nav>
           </div>
         </div>
@@ -59,12 +119,21 @@ export default function Home() {
                   Create a new survey and send invitations via email to
                   participants.
                 </p>
-                <Link
-                  href="/create"
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-                >
-                  Create Survey
-                </Link>
+                {user ? (
+                  <Link
+                    href="/create"
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                  >
+                    Create Survey
+                  </Link>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                  >
+                    Login to Create
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -103,7 +172,7 @@ export default function Home() {
           {/* Features */}
           <div className="mt-16">
             <h3 className="text-2xl font-bold text-gray-900 mb-8">
-              System Features
+              Key Features
             </h3>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center">
@@ -118,16 +187,41 @@ export default function Home() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  Zero-Knowledge Proofs
+                </h4>
+                <p className="text-gray-600">
+                  Verify survey participation without revealing personal
+                  information using advanced cryptographic techniques.
+                </p>
+              </div>
+
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 mb-4">
+                  <svg
+                    className="h-6 w-6 text-indigo-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
                     />
                   </svg>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                  Anonymity Guaranteed
+                  Privacy Protection
                 </h4>
                 <p className="text-gray-600">
-                  Zero-Knowledge Proofs ensure trustworthy survey results
-                  without exposing personal information.
+                  Ensure complete anonymity while maintaining survey integrity
+                  and preventing duplicate submissions.
                 </p>
               </div>
 
@@ -153,31 +247,6 @@ export default function Home() {
                 <p className="text-gray-600">
                   Effectively prevent duplicate participation using commitments
                   generated from UUID and password combinations.
-                </p>
-              </div>
-
-              <div className="text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                  <svg
-                    className="h-6 w-6 text-red-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                  Fast Processing
-                </h4>
-                <p className="text-gray-600">
-                  Efficient verification using Poseidon Hash for quick and
-                  reliable processing.
                 </p>
               </div>
             </div>

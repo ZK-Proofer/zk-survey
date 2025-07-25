@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Member } from '../entity/member.entity';
-import { RequestWithMember } from 'src/modules/auth/guard/bearer-token.guard';
+import { RequestWithMember } from '../../auth/guard/bearer-token.guard';
 
 export const TokenMember = createParamDecorator(
   (_data: keyof Member | undefined, ctx: ExecutionContext) => {

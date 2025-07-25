@@ -12,7 +12,7 @@ interface QuestionOption {
 interface Question {
   id: number;
   text: string;
-  type: "TEXT" | "MULTIPLE_CHOICE" | "RATING";
+  type: "TEXT" | "SINGLE_CHOICE" | "MULTIPLE_CHOICE" | "RATING";
   order_index: number;
   is_required: boolean;
   options?: QuestionOption[];
@@ -38,7 +38,7 @@ interface Answer {
 export default function ParticipateSurvey() {
   const params = useParams();
   const router = useRouter();
-  const uuid = params.uuid as string;
+  const id = params.id as string;
 
   const [survey, setSurvey] = useState<SurveyData | null>(null);
   const [answers, setAnswers] = useState<Answer[]>([]);
@@ -48,11 +48,11 @@ export default function ParticipateSurvey() {
 
   useEffect(() => {
     fetchSurveyData();
-  }, [uuid]);
+  }, [id]);
 
   const fetchSurveyData = async () => {
     try {
-      const response = await fetch(`/api/survey/${uuid}/questions`);
+      const response = await fetch(`/api/survey/${id}/questions`);
       if (response.ok) {
         const data = await response.json();
         setSurvey(data);
@@ -113,14 +113,14 @@ export default function ParticipateSurvey() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          uuid,
+          uuid: id,
           surveyId: survey?.id,
           answers,
         }),
       });
 
       if (response.ok) {
-        router.push(`/survey/${uuid}/complete`);
+        router.push(`/survey/${id}/complete`);
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to submit survey.");
@@ -147,12 +147,13 @@ export default function ParticipateSurvey() {
               value={answer?.answer || ""}
               onChange={(e) => updateAnswer(question.id, e.target.value)}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
               placeholder="Enter your answer"
             />
           </div>
         );
 
+      case "SINGLE_CHOICE":
       case "MULTIPLE_CHOICE":
         return (
           <div>
@@ -173,7 +174,9 @@ export default function ParticipateSurvey() {
                     required={question.is_required}
                     className="mr-2"
                   />
-                  <span className="text-gray-700">{option.text}</span>
+                  <span className="text-gray-900 font-medium">
+                    {option.text}
+                  </span>
                 </label>
               ))}
             </div>
@@ -205,7 +208,7 @@ export default function ParticipateSurvey() {
                     required={question.is_required}
                     className="mr-1"
                   />
-                  <span className="text-gray-700">{rating}</span>
+                  <span className="text-gray-900 font-medium">{rating}</span>
                 </label>
               ))}
             </div>
@@ -248,8 +251,10 @@ export default function ParticipateSurvey() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
               {survey.title}
             </h1>
-            <p className="text-gray-600 mb-4">{survey.description}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-gray-800 mb-4 text-lg leading-relaxed">
+              {survey.description}
+            </p>
+            <p className="text-sm text-gray-700 font-medium">
               Author: {survey.author.nickname}
             </p>
           </div>
@@ -262,7 +267,7 @@ export default function ParticipateSurvey() {
                   key={question.id}
                   className="border border-gray-200 rounded-lg p-6"
                 >
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Question {index + 1}: {question.text}
                     {question.is_required && (
                       <span className="text-red-500 ml-1">*</span>

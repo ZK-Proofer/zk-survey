@@ -26,9 +26,9 @@ import {
   ENV_DB_USERNAME_KEY,
   ENV_DB_PASSWORD_KEY,
   ENV_DB_DATABASE_KEY,
-} from './modules/common/const/env-keys.const';
+} from './common/const/env-keys.const';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { LogMiddleware } from './modules/common/middleware/log.middleware';
+import { LogMiddleware } from './common/middleware/log.middleware';
 import { MemberModule } from './modules/member/member.module';
 import { VerifyModule } from './modules/verify/verify.module';
 import { MerkleTreeModule } from './modules/merkletree/merkletree.module';

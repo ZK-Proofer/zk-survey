@@ -2,7 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Question } from './question.entity';
 import { QuestionOption } from './question-option.entity';
 import { SurveyResponse } from './survey-response.entity';
-import { BaseEntity } from 'src/modules/common/entity/base.entity';
+import { BaseEntity } from 'src/common/entity/base.entity';
 
 @Entity('response_answers')
 export class ResponseAnswer extends BaseEntity {

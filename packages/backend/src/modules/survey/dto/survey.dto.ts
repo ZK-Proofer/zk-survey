@@ -72,6 +72,10 @@ export class SurveyResponseDto {
   };
   questions: QuestionResponseDto[];
   created_at: Date;
+  invitation?: {
+    uuid: string;
+    status: string;
+  };
 }
 
 export class QuestionResponseDto {

@@ -19,7 +19,7 @@ interface SurveyInfo {
 export default function SurveyPassword() {
   const params = useParams();
   const router = useRouter();
-  const uuid = params.uuid as string;
+  const id = params.id as string;
 
   const [survey, setSurvey] = useState<SurveyInfo | null>(null);
   const [password, setPassword] = useState("");
@@ -29,11 +29,11 @@ export default function SurveyPassword() {
 
   useEffect(() => {
     fetchSurveyInfo();
-  }, [uuid]);
+  }, [id]);
 
   const fetchSurveyInfo = async () => {
     try {
-      const response = await fetch(`/api/survey/invitation/${uuid}`);
+      const response = await fetch(`/api/survey/invitation/${id}`);
       if (response.ok) {
         const data = await response.json();
         setSurvey(data);
@@ -59,14 +59,14 @@ export default function SurveyPassword() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          uuid,
+          uuid: id,
           password,
         }),
       });
 
       if (response.ok) {
         // Navigate to survey participation page
-        router.push(`/survey/${uuid}/participate`);
+        router.push(`/survey/${id}/participate`);
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Authentication failed.");
@@ -136,7 +136,7 @@ export default function SurveyPassword() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500"
                 placeholder="Enter the password received via email"
               />
             </div>
@@ -157,7 +157,7 @@ export default function SurveyPassword() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-xs text-gray-500">UUID: {uuid}</p>
+            <p className="text-xs text-gray-500">ID: {id}</p>
           </div>
         </div>
       </div>

@@ -5,7 +5,6 @@ import {
   UseGuards,
   Headers,
   UseInterceptors,
-  Version,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
@@ -14,14 +13,12 @@ import {
   RefreshTokenDto,
 } from './dto/auth.dto';
 import { RefreshTokenGuard } from './guard/bearer-token.guard';
-import { LogInterceptor } from 'src/modules/common/interceptor/log.interceptor';
-
-@Controller('auth')
+import { LogInterceptor } from '../../common/interceptor/log.interceptor';
+@Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @Version('1')
   @UseInterceptors(LogInterceptor)
   async loginWithGoogle(
     @Body() loginDto: GoogleLoginDto,
@@ -33,7 +30,6 @@ export class AuthController {
   }
 
   @Post('token/refresh')
-  @Version('1')
   @UseGuards(RefreshTokenGuard)
   postTokenRefresh(
     @Headers('authorization') rawToken: string,

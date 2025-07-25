@@ -7,10 +7,15 @@ import { Question } from './entity/question.entity';
 import { QuestionOption } from './entity/question-option.entity';
 import { AuthModule } from '../auth/auth.module';
 import { MemberModule } from '../member/member.module';
-
+import { SurveyInvitation } from './entity/survey-invitation.entity';
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Survey, Question, QuestionOption]),
+    TypeOrmModule.forFeature([
+      Survey,
+      Question,
+      QuestionOption,
+      SurveyInvitation,
+    ]),
     AuthModule,
     MemberModule,
   ],
