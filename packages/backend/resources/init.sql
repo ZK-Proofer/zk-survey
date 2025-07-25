@@ -129,7 +129,8 @@ CREATE INDEX `idx_responses_submitted_at` ON `survey_responses` (`submitted_at`)
 CREATE TABLE `merkle_tree` (
   `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `survey_id` int NOT NULL,
-  `merkle_tree` mediumtext,
+  `depth` int NOT NULL,
+  `leaves` mediumtext,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
