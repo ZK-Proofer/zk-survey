@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { UltraHonkBackend } from '@aztec/bb.js';
-import circuit from './circuit/circuit.json';
+// import circuit from './circuit/circuit.json';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Verification } from './entity/verification.entity';
 import { QueryRunner, Repository } from 'typeorm';
 import { MerkleTreeService } from '../merkletree/merkletree.service';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class VerifyService {
@@ -14,7 +16,12 @@ export class VerifyService {
     private readonly verificationRepository: Repository<Verification>,
     private readonly merkleTreeService: MerkleTreeService,
   ) {
-    this.honk = new UltraHonkBackend(circuit.bytecode);
+    const filePath = path.join(
+      process.cwd(),
+      'src/modules/verify/circuit/circuit.json',
+    );
+    const circuit = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    this.honk = new UltraHonkBackend(circuit['bytecode']);
   }
 
   async verify(
