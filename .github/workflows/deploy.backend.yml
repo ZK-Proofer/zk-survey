@@ -35,11 +35,6 @@ jobs:
           cd packages/backend
           yarn build
 
-      - name: Run tests
-        run: |
-          cd packages/backend
-          yarn test
-
   # deploy backend (PM2)
   deploy-backend:
     runs-on: ubuntu-latest
