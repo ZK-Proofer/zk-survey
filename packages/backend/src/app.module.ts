@@ -32,6 +32,7 @@ import { LogMiddleware } from './common/middleware/log.middleware';
 import { MemberModule } from './modules/member/member.module';
 import { VerifyModule } from './modules/verify/verify.module';
 import { MerkleTreeModule } from './modules/merkletree/merkletree.module';
+import { MerkleTree } from './modules/merkletree/entity/merkle-tree.entity';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { MerkleTreeModule } from './modules/merkletree/merkletree.module';
         SurveyResponse,
         ResponseAnswer,
         Verification,
+        MerkleTree,
       ],
       synchronize: false,
     }),
