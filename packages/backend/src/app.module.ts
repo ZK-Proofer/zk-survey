@@ -31,6 +31,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LogMiddleware } from './modules/common/middleware/log.middleware';
 import { MemberModule } from './modules/member/member.module';
 import { VerifyModule } from './modules/verify/verify.module';
+import { MerkleTreeModule } from './modules/merkletree/merkletree.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { VerifyModule } from './modules/verify/verify.module';
     SurveyModule,
     MemberModule,
     VerifyModule,
+    MerkleTreeModule,
   ],
   controllers: [AppController],
   providers: [

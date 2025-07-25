@@ -4,6 +4,7 @@ import circuit from './circuit/circuit.json';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Verification } from './entity/verification.entity';
 import { QueryRunner, Repository } from 'typeorm';
+import { MerkleTreeService } from '../merkletree/merkletree.service';
 
 @Injectable()
 export class VerifyService {
@@ -11,33 +12,46 @@ export class VerifyService {
   constructor(
     @InjectRepository(Verification)
     private readonly verificationRepository: Repository<Verification>,
+    private readonly merkleTreeService: MerkleTreeService,
   ) {
     this.honk = new UltraHonkBackend(circuit.bytecode);
   }
 
   async verify(
     proof: string,
-    publicInputs: string[],
+    surveyId: number,
+    nulifier: string,
+    merkleProof: string[],
     qr: QueryRunner,
   ): Promise<{ result: boolean; save: () => void }> {
     if (!this.validateHexString(proof, false))
       throw new Error('Wrong proof format');
-    publicInputs.forEach((input, index) => {
-      if (!this.validateHexString(input, true))
-        throw new Error(`Wrong public input index: ${index}`);
+    if (!this.validateHexString(nulifier, true))
+      throw new Error('Wrong nulfier format');
+    merkleProof = merkleProof.map((node) => {
+      if (!this.validateHexString(node, true))
+        throw new Error('Wrong merkle proof node format');
+      return this.attachPrefix(node);
     });
+
+    const merkleRoot = (await this.merkleTreeService.getTree(surveyId)).root;
 
     const bufferProof = Buffer.from(proof.replace(/^0x/i, ''), 'hex');
     const verified = await this.honk.verifyProof({
       proof: bufferProof,
-      publicInputs,
+      publicInputs: [
+        this.attachPrefix(surveyId.toString(16)),
+        this.attachPrefix(nulifier),
+        this.attachPrefix(merkleRoot.toString()),
+        ...merkleProof,
+      ],
     });
 
     if (!verified) return { result: verified, save: () => {} };
 
     const repository = qr.manager.getRepository(Verification);
     const newRow = repository.create({
-      nullifier_hash: publicInputs[1],
+      nullifier_hash: nulifier[1],
     });
 
     return {
@@ -60,5 +74,9 @@ export class VerifyService {
     }
 
     return true;
+  }
+
+  private attachPrefix(str: string) {
+    return str.startsWith('0x') ? str : '0x' + str;
   }
 }
