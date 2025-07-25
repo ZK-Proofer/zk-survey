@@ -6,8 +6,11 @@ export class MerkleTree extends BaseEntity {
   @Column({ type: 'int' })
   survey_id: number;
 
+  @Column({ type: 'int' })
+  depth: number;
+
   @Column({ type: 'mediumtext' })
-  merkle_tree: string;
+  leaves: string;
 
   @ManyToOne(() => Survey, (survey) => survey.id)
   survey: Survey;
