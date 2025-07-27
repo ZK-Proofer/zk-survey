@@ -66,16 +66,8 @@ export class SurveyResponseDto {
   title: string;
   description?: string;
   status: string;
-  author: {
-    id: number;
-    nickname: string;
-  };
   questions: QuestionResponseDto[];
   created_at: Date;
-  invitation?: {
-    uuid: string;
-    status: string;
-  };
 }
 
 export class QuestionResponseDto {

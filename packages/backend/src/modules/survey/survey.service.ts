@@ -4,12 +4,8 @@ import { QueryRunner, Repository } from 'typeorm';
 import { Survey } from './entity/survey.entity';
 import { Question } from './entity/question.entity';
 import { QuestionOption } from './entity/question-option.entity';
-import { SurveyInvitation } from './entity/survey-invitation.entity';
 import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
 import { SurveyStatus } from './const/survey-status.const';
-import { QuestionType } from './const/question-type.const';
-import { InvitationStatus } from './const/invitation-status.const';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SurveyService {
@@ -20,8 +16,6 @@ export class SurveyService {
     private questionRepository: Repository<Question>,
     @InjectRepository(QuestionOption)
     private questionOptionRepository: Repository<QuestionOption>,
-    @InjectRepository(SurveyInvitation)
-    private surveyInvitationRepository: Repository<SurveyInvitation>,
   ) {}
 
   private getSurveyRepository(qr?: QueryRunner) {
@@ -60,20 +54,6 @@ export class SurveyService {
 
     const savedSurvey = await surveyRepository.save(survey);
 
-    // Reload survey with author relation
-    const surveyWithAuthor = await surveyRepository.findOne({
-      where: { id: savedSurvey.id },
-      relations: ['author'],
-    });
-
-    if (!surveyWithAuthor) {
-      throw new Error('Failed to create survey');
-    }
-
-    if (!surveyWithAuthor.author) {
-      throw new Error('Survey author relation is not loaded');
-    }
-
     const questions: Question[] = [];
     for (let i = 0; i < createSurveyDto.questions.length; i++) {
       const questionDto = createSurveyDto.questions[i];
@@ -88,15 +68,7 @@ export class SurveyService {
 
       const savedQuestion = await questionRepository.save(question);
 
-      if (
-        (questionDto.type === QuestionType.SINGLE_CHOICE ||
-          questionDto.type === QuestionType.MULTIPLE_CHOICE) &&
-        questionDto.options
-      ) {
-        console.log(
-          `Creating options for question ${savedQuestion.id}:`,
-          questionDto.options,
-        );
+      if (questionDto.options && questionDto.options.length > 0) {
         const options: QuestionOption[] = [];
         for (let j = 0; j < questionDto.options.length; j++) {
           const optionDto = questionDto.options[j];
@@ -108,7 +80,6 @@ export class SurveyService {
           });
 
           const savedOption = await questionOptionRepository.save(option);
-          console.log(`Saved option:`, savedOption);
           options.push(savedOption);
         }
         savedQuestion.options = options;
@@ -117,25 +88,7 @@ export class SurveyService {
       questions.push(savedQuestion);
     }
 
-    // Create invitation for the survey
-    const invitation = this.surveyInvitationRepository.create({
-      survey_id: savedSurvey.id,
-      email: 'anonymous@example.com', // Placeholder email
-      uuid: uuidv4(),
-      status: InvitationStatus.PENDING,
-    });
-
-    const savedInvitation =
-      await this.surveyInvitationRepository.save(invitation);
-
-    // Get invitation info for response
-    const invitationInfo = {
-      uuid: savedInvitation.uuid,
-      status: savedInvitation.status,
-    };
-
-    const response = this.mapToSurveyResponse(surveyWithAuthor, questions);
-    response.invitation = invitationInfo;
+    const response = this.mapToSurveyResponse(savedSurvey, questions);
 
     return response;
   }
@@ -226,20 +179,11 @@ export class SurveyService {
     survey: Survey,
     questions: Question[],
   ): SurveyResponseDto {
-    // Check if author relation is loaded
-    if (!survey.author) {
-      throw new Error('Survey author relation is not loaded');
-    }
-
     return {
       id: survey.id,
       title: survey.title,
       description: survey.description,
       status: survey.status,
-      author: {
-        id: survey.author.id,
-        nickname: survey.author.nickname,
-      },
       questions: questions.map((q) => ({
         id: q.id,
         text: q.text,

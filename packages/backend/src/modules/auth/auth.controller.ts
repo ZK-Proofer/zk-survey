@@ -14,6 +14,8 @@ import {
 } from './dto/auth.dto';
 import { RefreshTokenGuard } from './guard/bearer-token.guard';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
+import { QueryRunnerDecorator } from '../../common/decorator/query-runner.decorator';
+import { QueryRunner } from 'typeorm';
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -22,10 +24,12 @@ export class AuthController {
   @UseInterceptors(TransactionInterceptor)
   async loginWithGoogle(
     @Body() loginDto: GoogleLoginDto,
+    @QueryRunnerDecorator() qr: QueryRunner,
   ): Promise<LoginResponseDto> {
     return await this.authService.loginWithGoogle(
       loginDto.code,
       loginDto.redirectUri,
+      qr,
     );
   }
 
