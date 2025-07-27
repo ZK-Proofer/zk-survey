@@ -9,9 +9,14 @@ import {
   ENV_GOOGLE_CLIENT_ID_KEY,
   ENV_GOOGLE_CLIENT_SECRET_KEY,
 } from '../../common/const/env-keys.const';
-import { LoginResponseDto } from './dto/auth.dto';
+import { CommitmentDto, LoginResponseDto } from './dto/auth.dto';
 import axios from 'axios';
-import { QueryRunner } from 'typeorm';
+import { MerkleTreeService } from '../merkletree/merkletree.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Commitment } from './entity/commitment.entity';
+import { QueryRunner, Repository } from 'typeorm';
+import { Query } from 'mysql2/typings/mysql/lib/protocol/sequences/Query';
+
 interface JwtPayload {
   email: string;
   sub: number;
@@ -42,6 +47,9 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly memberService: MemberService,
     private readonly configService: ConfigService,
+    private readonly merkleTreeService: MerkleTreeService,
+    @InjectRepository(Commitment)
+    private readonly commitmnetRepository: Repository<Commitment>,
   ) {}
 
   async loginWithGoogle(
@@ -166,6 +174,29 @@ export class AuthService {
         email: payload.email,
       },
       isRefreshToken,
+    );
+  }
+
+  private getCommitmnetReposittory(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository(Commitment)
+      : this.commitmnetRepository;
+  }
+
+  async registerSurveyCommtiment(
+    surveyId: number,
+    commitmentDto: CommitmentDto,
+    qr?: QueryRunner,
+  ) {
+    const repository = this.getCommitmnetReposittory(qr);
+    await repository.save({
+      commitmentHash: commitmentDto.commitment,
+    });
+
+    await this.merkleTreeService.addLeaf(
+      surveyId,
+      commitmentDto.commitment,
+      qr,
     );
   }
 }
