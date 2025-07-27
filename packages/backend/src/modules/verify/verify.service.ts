@@ -17,13 +17,18 @@ export class VerifyService {
     this.honk = new UltraHonkBackend(circuit.bytecode);
   }
 
+  private getVerificationRepository(qr: QueryRunner) {
+    if (qr) return qr.manager.getRepository(Verification);
+    return this.verificationRepository;
+  }
+
   async verify(
     proof: string,
     surveyId: number,
     nulifier: string,
     merkleProof: string[],
     qr: QueryRunner,
-  ): Promise<{ result: boolean; save: () => void }> {
+  ) {
     if (!this.validateHexString(proof, false))
       throw new Error('Wrong proof format');
     if (!this.validateHexString(nulifier, true))
@@ -35,31 +40,31 @@ export class VerifyService {
     });
 
     const merkleRoot = (await this.merkleTreeService.getTree(surveyId)).root;
-
     const bufferProof = Buffer.from(proof.replace(/^0x/i, ''), 'hex');
-    const verified = await this.honk.verifyProof({
-      proof: bufferProof,
-      publicInputs: [
-        this.attachPrefix(surveyId.toString(16)),
-        this.attachPrefix(nulifier),
-        this.attachPrefix(merkleRoot.toString()),
-        ...merkleProof,
-      ],
-    });
 
-    if (!verified) return { result: verified, save: () => {} };
+    const throwVerificationError = (error?: Error) => {
+      throw new Error(`Verification failed${error && `: ${error}`}`);
+    };
+    try {
+      const verified = await this.honk.verifyProof({
+        proof: bufferProof,
+        publicInputs: [
+          this.attachPrefix(surveyId.toString(16)),
+          this.attachPrefix(nulifier),
+          this.attachPrefix(merkleRoot.toString()),
+          ...merkleProof,
+        ],
+      });
 
-    const repository = qr.manager.getRepository(Verification);
-    const newRow = repository.create({
+      if (!verified) throwVerificationError();
+    } catch (error) {
+      throwVerificationError(error);
+    }
+
+    const repository = this.getVerificationRepository(qr);
+    await repository.save({
       nullifier_hash: nulifier,
     });
-
-    return {
-      result: verified,
-      save: () => {
-        repository.save(newRow);
-      },
-    };
   }
 
   private validateHexString(str: string, require32bytes: boolean = false) {
