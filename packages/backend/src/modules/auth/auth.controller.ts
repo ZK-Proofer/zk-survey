@@ -54,6 +54,7 @@ export class AuthController {
 
   @Post('survey/:surveyId/commitment')
   @ApiBody({ type: CommitmentDto })
+  @UseInterceptors(TransactionInterceptor)
   async postSurveyCommtiment(
     @Param('surveyId', ParseIntPipe) surveyId: number,
     @Body() commitmentDto: CommitmentDto,
