@@ -11,7 +11,7 @@ import {
 } from '../../common/const/env-keys.const';
 import { LoginResponseDto } from './dto/auth.dto';
 import axios from 'axios';
-
+import { QueryRunner } from 'typeorm';
 interface JwtPayload {
   email: string;
   sub: number;
@@ -47,7 +47,9 @@ export class AuthService {
   async loginWithGoogle(
     code: string,
     redirectUri: string,
+    qr: QueryRunner,
   ): Promise<LoginResponseDto> {
+    const memberRepository = qr.manager.getRepository(Member);
     const clientId = this.configService.get<string>(ENV_GOOGLE_CLIENT_ID_KEY);
     const clientSecret = this.configService.get<string>(
       ENV_GOOGLE_CLIENT_SECRET_KEY,
@@ -79,11 +81,11 @@ export class AuthService {
         },
       );
 
-      let member = await this.memberService.getMemberByEmail(
-        userInfo.data.email,
-      );
+      let member = await memberRepository.findOne({
+        where: { email: userInfo.data.email },
+      });
       if (!member) {
-        member = await this.memberService.createMember({
+        member = await memberRepository.save({
           email: userInfo.data.email,
           nickname: userInfo.data.name,
         });

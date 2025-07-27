@@ -16,7 +16,7 @@ export interface RequestWithQueryRunner extends Request {
 @Injectable()
 export class TransactionInterceptor implements NestInterceptor {
   constructor(
-    @InjectDataSource('default')
+    @InjectDataSource()
     private readonly datasource: DataSource,
   ) {}
 
@@ -34,14 +34,16 @@ export class TransactionInterceptor implements NestInterceptor {
 
       return next.handle().pipe(
         tap(() => {
-          qr.commitTransaction().catch(() => {
+          qr.commitTransaction().catch((e) => {
+            console.error(e);
             throw new InternalServerErrorException(
               'An error occurred while committing the transaction',
             );
           });
         }),
         catchError((error) => {
-          qr.rollbackTransaction().catch(() => {
+          qr.rollbackTransaction().catch((e) => {
+            console.error(e);
             throw new InternalServerErrorException(
               'An error occurred while rolling back the transaction',
             );
@@ -49,9 +51,14 @@ export class TransactionInterceptor implements NestInterceptor {
           throw error;
         }),
         finalize(() => {
-          qr.release().catch(() => {
-            console.error('An error occurred while releasing the QueryRunner');
-          });
+          setTimeout(() => {
+            qr.release().catch((e) => {
+              console.error(e);
+              throw new InternalServerErrorException(
+                'An error occurred while releasing the QueryRunner',
+              );
+            });
+          }, 200);
         }),
       );
     } catch {

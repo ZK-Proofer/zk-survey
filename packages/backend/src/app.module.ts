@@ -41,7 +41,6 @@ import { MerkleTree } from './modules/merkletree/entity/merkle-tree.entity';
       envFilePath: '.env',
     }),
     TypeOrmModule.forRoot({
-      name: 'default',
       type: 'mysql',
       host: process.env[ENV_DB_HOST_KEY] || 'localhost',
       port: parseInt(process.env[ENV_DB_PORT_KEY] || '3306'),
