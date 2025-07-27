@@ -6,10 +6,10 @@ import { MerkleTreeLeavesDto } from './dto/merkletree.dto';
 export class MerkleTreeController {
   constructor(private readonly merkleTreeService: MerkleTreeService) {}
 
-  @Get(':id/leaves')
+  @Get(':surveyId/leaves')
   async getMerkleTreeLeaves(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('surveyId', ParseIntPipe) surveyId: number,
   ): Promise<MerkleTreeLeavesDto> {
-    return await this.merkleTreeService.getLeaves(id);
+    return await this.merkleTreeService.getLeaves(surveyId);
   }
 }

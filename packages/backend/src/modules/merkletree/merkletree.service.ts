@@ -24,25 +24,28 @@ export class MerkleTreeService implements OnModuleInit {
     };
   }
 
-  async createTree(surveyId: number, depth: number, qr: QueryRunner) {
-    const repository = qr.manager.getRepository(MerkleTree);
-    const newRow = repository.create({
+  private getMerkleTreeRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository(MerkleTree)
+      : this.merkleTreeRepository;
+  }
+
+  async createTree(surveyId: number, depth: number, qr?: QueryRunner) {
+    const repository = this.getMerkleTreeRepository(qr);
+
+    await repository.save({
       survey_id: surveyId,
       depth,
       leaves: JSON.stringify([]),
     });
-    return {
-      save: () => {
-        repository.save(newRow);
-      },
-    };
   }
 
   async getTree(surveyId: number) {
-    const treeInfo = await this.merkleTreeRepository.findOneBy({
-      survey_id: surveyId,
+    const treeInfo = await this.merkleTreeRepository.findOneOrFail({
+      where: {
+        survey_id: surveyId,
+      },
     });
-    if (!treeInfo) throw new Error('Merkle tree not found');
 
     let leaves: string[];
     try {
@@ -60,15 +63,26 @@ export class MerkleTreeService implements OnModuleInit {
     );
   }
 
-  async addLeaf(surveyId: number, leaf: IMTNode) {
-    const mt = await this.getTree(surveyId);
-    mt.insert(leaf);
-    const leaves = JSON.stringify(mt.leaves);
+  async addLeaf(surveyId: number, leaf: IMTNode, qr?: QueryRunner) {
+    const repository = this.getMerkleTreeRepository(qr);
 
-    await this.merkleTreeRepository.update(
-      { survey_id: surveyId },
-      { leaves: leaves },
-    );
+    const treeInfo = await repository.findOneOrFail({
+      where: {
+        survey_id: surveyId,
+      },
+    });
+
+    let leaves: string[];
+    try {
+      leaves = JSON.parse(treeInfo.leaves);
+    } catch (error) {
+      throw new Error(`Failed to parse leaves from db: ${error}`);
+    }
+    // @TODO leaf validation
+    leaves.push(leaf.toString());
+    treeInfo.leaves = JSON.stringify(leaves);
+
+    await repository.save(treeInfo);
   }
 
   async getLeaves(surveyId: number): Promise<MerkleTreeLeavesDto> {
