@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface Survey {
   id: number;
@@ -296,16 +306,17 @@ export default function SurveyDetailPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">오류가 발생했습니다</div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            다시 시도
-          </button>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">오류가 발생했습니다</CardTitle>
+            <CardDescription className="text-gray-600">{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              다시 시도
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -313,17 +324,21 @@ export default function SurveyDetailPage() {
   if (!survey) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">
-            설문을 찾을 수 없습니다
-          </div>
-          <Link
-            href="/my-surveys"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            목록으로 돌아가기
-          </Link>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">
+              설문을 찾을 수 없습니다
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              초대링크가 올바르지 않거나 만료되었습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full">
+              <Link href="/my-surveys">목록으로 돌아가기</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -334,328 +349,294 @@ export default function SurveyDetailPage() {
         {/* 헤더 */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <Link
-              href="/my-surveys"
-              className="inline-flex items-center text-blue-600 hover:text-blue-700"
-            >
-              <svg
-                className="w-5 h-5 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-              목록으로 돌아가기
-            </Link>
+            <Button asChild variant="outline">
+              <Link href="/my-surveys">
+                <svg
+                  className="w-5 h-5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                목록으로 돌아가기
+              </Link>
+            </Button>
             <div className="flex space-x-2">
               {survey.status === "DRAFT" && (
-                <Link
-                  href={`/create?edit=${survey.id}`}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  수정
-                </Link>
+                <Button asChild variant="outline">
+                  <Link href={`/create?edit=${survey.id}`}>수정</Link>
+                </Button>
               )}
               {survey.status === "ACTIVE" && (
-                <button
+                <Button
                   onClick={closeSurvey}
                   disabled={isClosing}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="destructive"
                 >
                   {isClosing ? "종료 중..." : "설문 종료"}
-                </button>
+                </Button>
               )}
-              <Link
-                href={`/survey/${survey.id}`}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                미리보기
-              </Link>
+              <Button asChild>
+                <Link href={`/survey/${survey.id}`}>미리보기</Link>
+              </Button>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {survey.title}
-                </h1>
-                <p className="text-gray-600 mb-4">{survey.description}</p>
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-3xl font-bold mb-2">
+                    {survey.title}
+                  </CardTitle>
+                  <CardDescription className="text-lg mb-4">
+                    {survey.description}
+                  </CardDescription>
+                </div>
+                <span
+                  className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(survey.status)}`}
+                >
+                  {getStatusText(survey.status)}
+                </span>
               </div>
-              <span
-                className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(survey.status)}`}
-              >
-                {getStatusText(survey.status)}
-              </span>
-            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-              <div>
-                <span className="font-medium">생성일:</span>
-                <br />
-                {new Date(survey.created_at).toLocaleDateString("ko-KR")}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">생성일:</span>
+                  <br />
+                  {new Date(survey.created_at).toLocaleDateString("ko-KR")}
+                </div>
+                <div>
+                  <span className="font-medium">질문 수:</span>
+                  <br />
+                  {survey.questions.length}개
+                </div>
+                <div>
+                  <span className="font-medium">필수 질문:</span>
+                  <br />
+                  {survey.questions.filter((q) => q.is_required).length}개
+                </div>
+                <div>
+                  <span className="font-medium">선택 질문:</span>
+                  <br />
+                  {survey.questions.filter((q) => !q.is_required).length}개
+                </div>
               </div>
-              <div>
-                <span className="font-medium">질문 수:</span>
-                <br />
-                {survey.questions.length}개
-              </div>
-              <div>
-                <span className="font-medium">필수 질문:</span>
-                <br />
-                {survey.questions.filter((q) => q.is_required).length}개
-              </div>
-              <div>
-                <span className="font-medium">선택 질문:</span>
-                <br />
-                {survey.questions.filter((q) => !q.is_required).length}개
-              </div>
-            </div>
-          </div>
+            </CardHeader>
+          </Card>
         </div>
 
         {/* 질문 목록 */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">질문 목록</h2>
-          </div>
-
-          <div className="divide-y divide-gray-200">
-            {survey.questions.map((question, index) => (
-              <div key={question.id} className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center mb-2">
-                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full mr-3">
-                        {index + 1}
-                      </span>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          question.is_required
-                            ? "bg-red-100 text-red-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {question.is_required ? "필수" : "선택"}
-                      </span>
-                      <span className="ml-2 text-sm text-gray-500">
-                        {getQuestionTypeText(question.type)}
-                      </span>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">질문 목록</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="divide-y divide-gray-200">
+              {survey.questions.map((question, index) => (
+                <div key={question.id} className="py-6">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full mr-3">
+                          {index + 1}
+                        </span>
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            question.is_required
+                              ? "bg-red-100 text-red-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {question.is_required ? "필수" : "선택"}
+                        </span>
+                        <span className="ml-2 text-sm text-gray-500">
+                          {getQuestionTypeText(question.type)}
+                        </span>
+                      </div>
+                      <h3 className="text-lg font-medium">{question.text}</h3>
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {question.text}
-                    </h3>
                   </div>
+
+                  {question.options && question.options.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        선택지:
+                      </h4>
+                      <div className="space-y-2">
+                        {question.options.map((option) => (
+                          <div key={option.id} className="flex items-center">
+                            <div className="w-4 h-4 border border-gray-300 rounded mr-3"></div>
+                            <span className="text-gray-700">{option.text}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {question.options && question.options.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">
-                      선택지:
-                    </h4>
-                    <div className="space-y-2">
-                      {question.options.map((option) => (
-                        <div key={option.id} className="flex items-center">
-                          <div className="w-4 h-4 border border-gray-300 rounded mr-3"></div>
-                          <span className="text-gray-700">{option.text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* 초대링크 생성 */}
         {survey.status === "ACTIVE" && (
-          <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              초대링크 생성
-            </h3>
-
-            <div className="space-y-4">
-              <p className="text-gray-600 text-sm">
+          <Card className="mt-8">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                초대링크 생성
+              </CardTitle>
+              <CardDescription>
                 참여자들의 이메일을 입력하여 개별 초대링크를 생성할 수 있습니다.
-              </p>
-
-              <div className="flex space-x-2">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="참여자 이메일 주소"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      createInvitationLink();
-                    }
-                  }}
-                />
-                <button
-                  onClick={createInvitationLink}
-                  disabled={isCreatingInvitation || !email.trim()}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isCreatingInvitation ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      생성 중...
-                    </div>
-                  ) : (
-                    "초대링크 생성"
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* 생성된 초대링크 목록 */}
-            {invitations.length > 0 && (
-              <div className="mt-6">
-                <h4 className="text-md font-medium text-gray-900 mb-3">
-                  생성된 초대링크
-                </h4>
-                <div className="space-y-3">
-                  {invitations.map((invitation, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex space-x-2">
+                  <div className="flex-1">
+                    <Label htmlFor="email">참여자 이메일 주소</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="참여자 이메일 주소"
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter") {
+                          createInvitationLink();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      onClick={createInvitationLink}
+                      disabled={isCreatingInvitation || !email.trim()}
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-sm font-medium text-gray-900">
-                            {invitation.email}
-                          </span>
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              invitation.status === "PENDING"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : invitation.status === "SENT"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : invitation.status === "OPENED"
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-gray-100 text-gray-800"
-                            }`}
-                          >
-                            {invitation.status === "PENDING"
-                              ? "대기중"
-                              : invitation.status === "SENT"
-                                ? "전송됨"
-                                : invitation.status === "OPENED"
-                                  ? "열림"
-                                  : invitation.status}
-                          </span>
+                      {isCreatingInvitation ? (
+                        <div className="flex items-center">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                          생성 중...
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          링크: {window.location.origin}/survey/
-                          {invitation.uuid}
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={handleCopyLink(invitation.uuid)}
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                        >
-                          복사
-                        </button>
-                        <button
-                          onClick={handleDeleteInvitation(invitation.email)}
-                          className="text-red-600 hover:text-red-700 text-sm font-medium"
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                      ) : (
+                        "초대링크 생성"
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* 생성된 초대링크 목록 */}
+              {invitations.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="text-md font-medium mb-3">생성된 초대링크</h4>
+                  <div className="space-y-3">
+                    {invitations.map((invitation, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm font-medium">
+                              {invitation.email}
+                            </span>
+                            <span
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                invitation.status === "PENDING"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : invitation.status === "SENT"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : invitation.status === "OPENED"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {invitation.status === "PENDING"
+                                ? "대기중"
+                                : invitation.status === "SENT"
+                                  ? "전송됨"
+                                  : invitation.status === "OPENED"
+                                    ? "열림"
+                                    : invitation.status}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            링크: {window.location.origin}/survey/{surveyId}/
+                            {invitation.uuid}
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            onClick={handleCopyLink(invitation.uuid)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            복사
+                          </Button>
+                          <Button
+                            onClick={handleDeleteInvitation(invitation.email)}
+                            variant="destructive"
+                            size="sm"
+                          >
+                            삭제
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* 초안 상태 안내 */}
         {survey.status === "DRAFT" && (
-          <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3 flex-1">
-                <h3 className="text-sm font-medium text-yellow-800">
-                  초안 상태
-                </h3>
-                <div className="mt-2 text-sm text-yellow-700">
-                  <p className="mb-4">
-                    이 설문은 아직 초안 상태입니다. 초대링크를 생성하려면 먼저
-                    설문을 발행해야 합니다.
-                  </p>
-                  <button
-                    onClick={publishSurvey}
-                    disabled={isPublishing}
-                    className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isPublishing ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        발행 중...
-                      </div>
-                    ) : (
-                      "설문 발행하기"
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Card className="mt-8 border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-yellow-800">초안 상태</CardTitle>
+              <CardDescription className="text-yellow-700">
+                이 설문은 아직 초안 상태입니다. 초대링크를 생성하려면 먼저
+                설문을 발행해야 합니다.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={publishSurvey}
+                disabled={isPublishing}
+                variant="outline"
+                className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white"
+              >
+                {isPublishing ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 mr-2"></div>
+                    발행 중...
+                  </div>
+                ) : (
+                  "설문 발행하기"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {/* 종료된 설문 안내 */}
         {survey.status === "CLOSED" && (
-          <div className="mt-8 bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-red-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-red-800">
-                  종료된 설문
-                </h3>
-                <div className="mt-2 text-sm text-red-700">
-                  <p>
-                    이 설문은 이미 종료되었습니다. 새로운 참여자를 받을 수
-                    없습니다.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Card className="mt-8 border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-red-800">종료된 설문</CardTitle>
+              <CardDescription className="text-red-700">
+                이 설문은 이미 종료되었습니다. 새로운 참여자를 받을 수 없습니다.
+              </CardDescription>
+            </CardHeader>
+          </Card>
         )}
       </div>
     </div>

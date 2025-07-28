@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 
 interface SurveyData {
   id: number;
@@ -159,16 +170,17 @@ export default function ParticipateSurvey() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">Error</div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Try Again
-          </button>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">Error</CardTitle>
+            <CardDescription className="text-gray-600">{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -176,9 +188,11 @@ export default function ParticipateSurvey() {
   if (!survey) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">Survey not found</div>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">Survey not found</CardTitle>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
@@ -186,143 +200,158 @@ export default function ParticipateSurvey() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {survey.title}
-            </h1>
-            <p className="text-gray-600 mb-6">{survey.description}</p>
-            <div className="text-sm text-gray-500">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold">{survey.title}</CardTitle>
+            <CardDescription className="text-lg">
+              {survey.description}
+            </CardDescription>
+            <p className="text-sm text-gray-500">
               작성자: {survey.author.nickname}
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {survey.questions.map((question, index) => (
-              <div key={question.id} className="border-b border-gray-200 pb-6">
-                <div className="mb-4">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    {index + 1}. {question.text}
-                    {question.is_required && (
-                      <span className="text-red-500 ml-1">*</span>
-                    )}
-                  </h3>
-                </div>
-
-                {question.type === "TEXT" && (
-                  <textarea
-                    value={
-                      answers.find((a) => a.questionId === question.id)
-                        ?.answer || ""
-                    }
-                    onChange={(e) => updateAnswer(question.id, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
-                    placeholder="답변을 입력하세요"
-                    required={question.is_required}
-                  />
-                )}
-
-                {question.type === "SINGLE_CHOICE" && question.options && (
-                  <div className="space-y-2">
-                    {question.options.map((option) => (
-                      <label key={option.id} className="flex items-center">
-                        <input
-                          type="radio"
-                          name={`question-${question.id}`}
-                          value={option.text}
-                          checked={
-                            answers.find((a) => a.questionId === question.id)
-                              ?.answer === option.text
-                          }
-                          onChange={(e) =>
-                            updateAnswer(question.id, e.target.value, option.id)
-                          }
-                          className="mr-3"
-                          required={question.is_required}
-                        />
-                        <span className="text-gray-700">{option.text}</span>
-                      </label>
-                    ))}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              {survey.questions.map((question, index) => (
+                <div
+                  key={question.id}
+                  className="border-b border-gray-200 pb-6"
+                >
+                  <div className="mb-4">
+                    <h3 className="text-lg font-medium mb-2">
+                      {index + 1}. {question.text}
+                      {question.is_required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </h3>
                   </div>
-                )}
 
-                {question.type === "MULTIPLE_CHOICE" && question.options && (
-                  <div className="space-y-2">
-                    {question.options.map((option) => (
-                      <label key={option.id} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          value={option.text}
-                          checked={
-                            answers
-                              .find((a) => a.questionId === question.id)
-                              ?.answer?.includes(option.text) || false
-                          }
-                          onChange={(e) => {
-                            const currentAnswer =
+                  {question.type === "TEXT" && (
+                    <Textarea
+                      value={
+                        answers.find((a) => a.questionId === question.id)
+                          ?.answer || ""
+                      }
+                      onChange={(e) =>
+                        updateAnswer(question.id, e.target.value)
+                      }
+                      placeholder="답변을 입력하세요"
+                      required={question.is_required}
+                      rows={3}
+                    />
+                  )}
+
+                  {question.type === "SINGLE_CHOICE" && question.options && (
+                    <div className="space-y-2">
+                      {question.options.map((option) => (
+                        <Label
+                          key={option.id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="radio"
+                            name={`question-${question.id}`}
+                            value={option.text}
+                            checked={
                               answers.find((a) => a.questionId === question.id)
-                                ?.answer || "";
-                            const newAnswer = e.target.checked
-                              ? currentAnswer
-                                ? `${currentAnswer}, ${option.text}`
-                                : option.text
-                              : currentAnswer
-                                  .replace(`, ${option.text}`, "")
-                                  .replace(option.text, "")
-                                  .replace(/^,\s*/, "");
-                            updateAnswer(question.id, newAnswer, option.id);
-                          }}
-                          className="mr-3"
-                        />
-                        <span className="text-gray-700">{option.text}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+                                ?.answer === option.text
+                            }
+                            onChange={(e) =>
+                              updateAnswer(
+                                question.id,
+                                e.target.value,
+                                option.id
+                              )
+                            }
+                            className="mr-3"
+                            required={question.is_required}
+                          />
+                          <span>{option.text}</span>
+                        </Label>
+                      ))}
+                    </div>
+                  )}
 
-                {question.type === "RATING" && (
-                  <div className="flex items-center space-x-4">
-                    {[1, 2, 3, 4, 5].map((rating) => (
-                      <label key={rating} className="flex items-center">
-                        <input
-                          type="radio"
-                          name={`rating-${question.id}`}
-                          value={rating.toString()}
-                          checked={
-                            answers.find((a) => a.questionId === question.id)
-                              ?.answer === rating.toString()
-                          }
-                          onChange={(e) =>
-                            updateAnswer(
-                              question.id,
-                              e.target.value,
-                              undefined,
-                              rating
-                            )
-                          }
-                          className="mr-2"
-                          required={question.is_required}
-                        />
-                        <span className="text-gray-700">{rating}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
+                  {question.type === "MULTIPLE_CHOICE" && question.options && (
+                    <div className="space-y-2">
+                      {question.options.map((option) => (
+                        <Label
+                          key={option.id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            value={option.text}
+                            checked={
+                              answers
+                                .find((a) => a.questionId === question.id)
+                                ?.answer?.includes(option.text) || false
+                            }
+                            onChange={(e) => {
+                              const currentAnswer =
+                                answers.find(
+                                  (a) => a.questionId === question.id
+                                )?.answer || "";
+                              const newAnswer = e.target.checked
+                                ? currentAnswer
+                                  ? `${currentAnswer}, ${option.text}`
+                                  : option.text
+                                : currentAnswer
+                                    .replace(`, ${option.text}`, "")
+                                    .replace(option.text, "")
+                                    .replace(/^,\s*/, "");
+                              updateAnswer(question.id, newAnswer, option.id);
+                            }}
+                            className="mr-3"
+                          />
+                          <span>{option.text}</span>
+                        </Label>
+                      ))}
+                    </div>
+                  )}
+
+                  {question.type === "RATING" && (
+                    <div className="flex items-center space-x-4">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <Label
+                          key={rating}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="radio"
+                            name={`rating-${question.id}`}
+                            value={rating.toString()}
+                            checked={
+                              answers.find((a) => a.questionId === question.id)
+                                ?.answer === rating.toString()
+                            }
+                            onChange={(e) =>
+                              updateAnswer(
+                                question.id,
+                                e.target.value,
+                                undefined,
+                                rating
+                              )
+                            }
+                            className="mr-2"
+                            required={question.is_required}
+                          />
+                          <span>{rating}</span>
+                        </Label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <div className="flex justify-end">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "제출 중..." : "설문 제출"}
+                </Button>
               </div>
-            ))}
-
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? "제출 중..." : "설문 제출"}
-              </button>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
