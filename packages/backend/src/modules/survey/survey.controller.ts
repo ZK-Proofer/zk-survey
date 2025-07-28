@@ -12,6 +12,10 @@ import {
 } from '@nestjs/common';
 import { SurveyService } from './survey.service';
 import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
+import {
+  CreateInvitationDto,
+  InvitationResponseDto,
+} from './dto/invitation.dto';
 import { AccessTokenGuard } from '../auth/guard/bearer-token.guard';
 import { TokenMember } from '../member/decorator/member.decorator';
 import { SurveyStatus } from './const/survey-status.const';
@@ -75,5 +79,22 @@ export class SurveyController {
     @QueryRunnerDecorator() qr: QueryRunner,
   ): Promise<void> {
     return await this.surveyService.deleteSurvey(id, memberId, qr);
+  }
+
+  @Post(':id/invitation')
+  @UseGuards(AccessTokenGuard)
+  @UseInterceptors(TransactionInterceptor)
+  async createInvitation(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createInvitationDto: CreateInvitationDto,
+    @TokenMember('id') memberId: number,
+    @QueryRunnerDecorator() qr: QueryRunner,
+  ): Promise<InvitationResponseDto> {
+    return await this.surveyService.createInvitation(
+      id,
+      createInvitationDto,
+      memberId,
+      qr,
+    );
   }
 }

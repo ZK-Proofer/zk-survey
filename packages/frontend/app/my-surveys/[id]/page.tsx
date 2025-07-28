@@ -223,44 +223,38 @@ export default function SurveyDetailPage() {
         return;
       }
 
-      // TODO: 백엔드 API가 준비되면 실제 API 호출로 변경
-      // const response = await fetch(
-      //   `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/${surveyId}/invitation`,
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //       Authorization: `Bearer ${token}`,
-      //     },
-      //     body: JSON.stringify({ email: email.trim() }),
-      //   }
-      // );
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/${surveyId}/invitation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ email: email.trim() }),
+        }
+      );
 
-      // if (!response.ok) {
-      //   throw new Error("Failed to create invitation");
-      // }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create invitation");
+      }
 
-      // const data = await response.json();
-      // const newInvitation = {
-      //   email: email.trim(),
-      //   uuid: data.uuid,
-      //   status: data.status
-      // };
-      // setInvitations(prev => [...prev, newInvitation]);
-
-      // 임시로 UUID 생성 (실제로는 백엔드에서 생성)
-      const tempUuid = crypto.randomUUID();
+      const data = await response.json();
       const newInvitation = {
         email: email.trim(),
-        uuid: tempUuid,
-        status: "PENDING",
+        uuid: data.uuid,
+        status: data.status,
       };
       setInvitations((prev) => [...prev, newInvitation]);
 
       setEmail(""); // 이메일 입력 필드 초기화
+      alert("초대링크가 성공적으로 생성되었습니다!");
     } catch (err) {
       console.error("Failed to create invitation:", err);
-      alert("초대링크 생성에 실패했습니다.");
+      alert(
+        err instanceof Error ? err.message : "초대링크 생성에 실패했습니다."
+      );
     } finally {
       setIsCreatingInvitation(false);
     }
