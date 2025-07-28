@@ -1,11 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { Survey } from './entity/survey.entity';
 import { Question } from './entity/question.entity';
 import { QuestionOption } from './entity/question-option.entity';
+import { SurveyInvitation } from './entity/survey-invitation.entity';
 import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
+import {
+  CreateInvitationDto,
+  InvitationResponseDto,
+} from './dto/invitation.dto';
 import { SurveyStatus } from './const/survey-status.const';
+import { InvitationStatus } from './const/invitation-status.const';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class SurveyService {
@@ -16,6 +27,8 @@ export class SurveyService {
     private questionRepository: Repository<Question>,
     @InjectRepository(QuestionOption)
     private questionOptionRepository: Repository<QuestionOption>,
+    @InjectRepository(SurveyInvitation)
+    private surveyInvitationRepository: Repository<SurveyInvitation>,
   ) {}
 
   private getSurveyRepository(qr?: QueryRunner) {
@@ -173,6 +186,79 @@ export class SurveyService {
     }
 
     await surveyRepository.remove(survey);
+  }
+
+  async createInvitation(
+    surveyId: number,
+    createInvitationDto: CreateInvitationDto,
+    authorId: number,
+    qr?: QueryRunner,
+  ): Promise<InvitationResponseDto> {
+    const surveyRepository = this.getSurveyRepository(qr);
+    const invitationRepository = this.getSurveyInvitationRepository(qr);
+
+    // 설문이 존재하고 작성자인지 확인
+    const survey = await surveyRepository.findOne({
+      where: { id: surveyId, author_id: authorId },
+    });
+
+    if (!survey) {
+      throw new NotFoundException('Survey not found');
+    }
+
+    // 설문이 발행된 상태인지 확인
+    if (survey.status !== SurveyStatus.ACTIVE) {
+      throw new ConflictException(
+        'Survey must be active to create invitations',
+      );
+    }
+
+    // 이미 해당 이메일로 초대가 생성되었는지 확인
+    const existingInvitation = await invitationRepository.findOne({
+      where: { survey_id: surveyId, email: createInvitationDto.email },
+    });
+
+    if (existingInvitation) {
+      throw new ConflictException('Invitation already exists for this email');
+    }
+
+    // UUID 생성
+    let uuid = uuidv4();
+
+    let isInvitationExists = await invitationRepository.exists({
+      where: { uuid },
+    });
+
+    while (isInvitationExists) {
+      uuid = uuidv4();
+      isInvitationExists = await invitationRepository.exists({
+        where: { uuid },
+      });
+    }
+
+    // 초대 생성
+    const invitation = invitationRepository.create({
+      survey_id: surveyId,
+      email: createInvitationDto.email,
+      uuid: uuid,
+      status: InvitationStatus.PENDING,
+    });
+
+    const savedInvitation = await invitationRepository.save(invitation);
+
+    return {
+      id: savedInvitation.id,
+      email: savedInvitation.email,
+      uuid: savedInvitation.uuid,
+      status: savedInvitation.status,
+      created_at: savedInvitation.createdAt,
+    };
+  }
+
+  private getSurveyInvitationRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<SurveyInvitation>(SurveyInvitation)
+      : this.surveyInvitationRepository;
   }
 
   private mapToSurveyResponse(
