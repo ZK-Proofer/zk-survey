@@ -9,10 +9,13 @@ import { Survey } from './entity/survey.entity';
 import { Question } from './entity/question.entity';
 import { QuestionOption } from './entity/question-option.entity';
 import { SurveyInvitation } from './entity/survey-invitation.entity';
+import { Commitment } from '../auth/entity/commitment.entity';
 import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
 import {
   CreateInvitationDto,
   InvitationResponseDto,
+  SaveCommitmentDto,
+  VerificationResponseDto,
 } from './dto/invitation.dto';
 import { SurveyStatus } from './const/survey-status.const';
 import { InvitationStatus } from './const/invitation-status.const';
@@ -29,6 +32,8 @@ export class SurveyService {
     private questionOptionRepository: Repository<QuestionOption>,
     @InjectRepository(SurveyInvitation)
     private surveyInvitationRepository: Repository<SurveyInvitation>,
+    @InjectRepository(Commitment)
+    private commitmentRepository: Repository<Commitment>,
   ) {}
 
   private getSurveyRepository(qr?: QueryRunner) {
@@ -125,6 +130,31 @@ export class SurveyService {
     });
 
     return this.mapToSurveyResponse(survey, questions);
+  }
+
+  async getSurveyByUuid(uuid: string): Promise<SurveyResponseDto> {
+    const invitationRepository = this.getSurveyInvitationRepository();
+
+    const invitation = await invitationRepository.findOne({
+      where: { uuid },
+      relations: ['survey', 'survey.author'],
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (!invitation.survey) {
+      throw new NotFoundException('Survey not found');
+    }
+
+    const questions = await this.questionRepository.find({
+      where: { survey_id: invitation.survey.id },
+      relations: ['options'],
+      order: { order_index: 'ASC' },
+    });
+
+    return this.mapToSurveyResponse(invitation.survey, questions);
   }
 
   async getSurveysByAuthor(authorId: number): Promise<SurveyResponseDto[]> {
@@ -255,10 +285,46 @@ export class SurveyService {
     };
   }
 
+  async saveCommitment(
+    uuid: string,
+    saveCommitmentDto: SaveCommitmentDto,
+  ): Promise<VerificationResponseDto> {
+    const invitationRepository = this.getSurveyInvitationRepository();
+    const commitmentRepository = this.getCommitmentRepository();
+
+    const invitation = await invitationRepository.findOne({
+      where: { uuid },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    // Commitment 저장
+    const commitment = commitmentRepository.create({
+      invitationId: invitation.id,
+      uuid: uuid,
+      commitmentHash: saveCommitmentDto.commitmentHash,
+    });
+
+    await commitmentRepository.save(commitment);
+
+    return {
+      success: true,
+      message: 'Commitment saved successfully',
+    };
+  }
+
   private getSurveyInvitationRepository(qr?: QueryRunner) {
     return qr
       ? qr.manager.getRepository<SurveyInvitation>(SurveyInvitation)
       : this.surveyInvitationRepository;
+  }
+
+  private getCommitmentRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<Commitment>(Commitment)
+      : this.commitmentRepository;
   }
 
   private mapToSurveyResponse(
@@ -270,6 +336,11 @@ export class SurveyService {
       title: survey.title,
       description: survey.description,
       status: survey.status,
+      author: survey.author
+        ? {
+            nickname: survey.author.nickname,
+          }
+        : null,
       questions: questions.map((q) => ({
         id: q.id,
         text: q.text,

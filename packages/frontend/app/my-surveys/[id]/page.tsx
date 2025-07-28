@@ -554,7 +554,7 @@ export default function SurveyDetailPage() {
                           </span>
                         </div>
                         <div className="text-xs text-gray-500 mt-1">
-                          링크: {window.location.origin}/survey/{surveyId}/
+                          링크: {window.location.origin}/survey/
                           {invitation.uuid}
                         </div>
                       </div>
