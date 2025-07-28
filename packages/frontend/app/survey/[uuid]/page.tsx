@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { makeCommitment } from "@/lib/zk";
 
 interface SurveyInfo {
   id: number;
@@ -33,19 +34,6 @@ interface SurveyInfo {
       order_index: number;
     }>;
   }>;
-}
-
-async function generatePoseidonHash(
-  uuid: string,
-  password: string
-): Promise<string> {
-  const bbsync = await BarretenbergSync.initSingleton();
-  const hash = bbsync.poseidon2Hash([
-    Fr.fromString(uuid),
-    Fr.fromString(password),
-  ]);
-  console.log(hash);
-  return hash.toString();
 }
 
 export default function SurveyInvitationPage() {
@@ -95,7 +83,7 @@ export default function SurveyInvitationPage() {
 
     setIsSubmitting(true);
     try {
-      const commitmentHash = await generatePoseidonHash(uuid, password.trim());
+      const commitmentHash = await makeCommitment(password.trim(), uuid);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/invitation/${uuid}/commitment`,
