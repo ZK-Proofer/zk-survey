@@ -55,12 +55,12 @@ export class AuthController {
   @Post('survey/:surveyId/commitment')
   @ApiBody({ type: CommitmentDto })
   @UseInterceptors(TransactionInterceptor)
-  async postSurveyCommtiment(
+  async postSurveyCommitment(
     @Param('surveyId', ParseIntPipe) surveyId: number,
     @Body() commitmentDto: CommitmentDto,
     @QueryRunnerDecorator() qr: QueryRunner,
-  ) {
-    return await this.authService.registerSurveyCommtiment(
+  ): Promise<void> {
+    await this.authService.registerSurveyCommitment(
       surveyId,
       commitmentDto,
       qr,
