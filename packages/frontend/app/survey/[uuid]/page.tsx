@@ -3,6 +3,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Barretenberg, BarretenbergSync, Fr } from "@aztec/bb.js";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface SurveyInfo {
   id: number;
@@ -131,16 +141,17 @@ export default function SurveyInvitationPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">오류가 발생했습니다</div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            다시 시도
-          </button>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">오류가 발생했습니다</CardTitle>
+            <CardDescription className="text-gray-600">{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              다시 시도
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -148,14 +159,16 @@ export default function SurveyInvitationPage() {
   if (!survey) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-xl mb-4">
-            설문을 찾을 수 없습니다
-          </div>
-          <p className="text-gray-600 mb-4">
-            초대링크가 올바르지 않거나 만료되었습니다.
-          </p>
-        </div>
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-red-600">
+              설문을 찾을 수 없습니다
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              초대링크가 올바르지 않거나 만료되었습니다.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
@@ -163,101 +176,90 @@ export default function SurveyInvitationPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              {survey.title}
-            </h1>
-            <p className="text-gray-600 mb-6">{survey.description}</p>
-            <div className="text-sm text-gray-500">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl font-bold">{survey.title}</CardTitle>
+            <CardDescription className="text-lg">
+              {survey.description}
+            </CardDescription>
+            <p className="text-sm text-gray-500">
               작성자: {survey.author.nickname}
-            </div>
-          </div>
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="border-t border-gray-200 pt-8">
+              <h2 className="text-xl font-semibold text-center mb-4">
+                설문 참여를 위한 비밀번호를 입력해주세요
+              </h2>
 
-          <div className="border-t border-gray-200 pt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 text-center">
-              설문 참여를 위한 비밀번호를 입력해주세요
-            </h2>
-
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
-              <div>
-                <label
-                  htmlFor=""
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  uuid
-                </label>
-                <input
-                  type="text"
-                  disabled
-                  value={uuid}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mb-5"
-                  required
-                />
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  비밀번호
-                </label>
-
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호를 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    확인 중...
-                  </div>
-                ) : (
-                  "설문 참여하기"
-                )}
-              </button>
-            </form>
-
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-blue-400"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="uuid">UUID</Label>
+                  <Input
+                    id="uuid"
+                    type="text"
+                    disabled
+                    value={uuid}
+                    className="mb-4"
+                  />
+                  <Label htmlFor="password">비밀번호</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="비밀번호를 입력하세요"
+                    required
+                  />
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    개인정보 보호
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <p>
-                      이 설문은 Zero-Knowledge Proof를 사용하여 개인정보를
-                      보호합니다.
-                    </p>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      확인 중...
+                    </div>
+                  ) : (
+                    "설문 참여하기"
+                  )}
+                </Button>
+              </form>
+
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-blue-400"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-800">
+                      개인정보 보호
+                    </h3>
+                    <div className="mt-2 text-sm text-blue-700">
+                      <p>
+                        이 설문은 Zero-Knowledge Proof를 사용하여 개인정보를
+                        보호합니다.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
