@@ -66,6 +66,9 @@ export class SurveyResponseDto {
   title: string;
   description?: string;
   status: string;
+  author: {
+    nickname: string;
+  } | null;
   questions: QuestionResponseDto[];
   created_at: Date;
 }

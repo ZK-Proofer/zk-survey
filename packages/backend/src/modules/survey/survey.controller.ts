@@ -15,6 +15,8 @@ import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
 import {
   CreateInvitationDto,
   InvitationResponseDto,
+  SaveCommitmentDto,
+  VerificationResponseDto,
 } from './dto/invitation.dto';
 import { AccessTokenGuard } from '../auth/guard/bearer-token.guard';
 import { TokenMember } from '../member/decorator/member.decorator';
@@ -96,5 +98,20 @@ export class SurveyController {
       memberId,
       qr,
     );
+  }
+
+  @Get('invitation/:uuid')
+  async getSurveyByUuid(
+    @Param('uuid') uuid: string,
+  ): Promise<SurveyResponseDto> {
+    return await this.surveyService.getSurveyByUuid(uuid);
+  }
+
+  @Post('invitation/:uuid/commitment')
+  async verifyCommitment(
+    @Param('uuid') uuid: string,
+    @Body() verifyCommitmentDto: SaveCommitmentDto,
+  ): Promise<VerificationResponseDto> {
+    return await this.surveyService.saveCommitment(uuid, verifyCommitmentDto);
   }
 }

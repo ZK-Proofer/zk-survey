@@ -1,9 +1,15 @@
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateInvitationDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+}
+
+export class SaveCommitmentDto {
+  @IsString()
+  @IsNotEmpty()
+  commitmentHash: string;
 }
 
 export class InvitationResponseDto {
@@ -12,4 +18,9 @@ export class InvitationResponseDto {
   uuid: string;
   status: string;
   created_at: Date;
+}
+
+export class VerificationResponseDto {
+  success: boolean;
+  message?: string;
 }
