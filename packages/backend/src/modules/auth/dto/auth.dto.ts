@@ -1,14 +1,11 @@
-import { ApiProperty, ApiSchema } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
   IsOptional,
   IsObject,
-  IsHash,
   IsHexadecimal,
-  registerSchema,
 } from 'class-validator';
-import { EntitySchema } from 'typeorm';
 
 export class GoogleLoginDto {
   @IsString()

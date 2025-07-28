@@ -15,7 +15,6 @@ import { MerkleTreeService } from '../merkletree/merkletree.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Commitment } from './entity/commitment.entity';
 import { QueryRunner, Repository } from 'typeorm';
-import { Query } from 'mysql2/typings/mysql/lib/protocol/sequences/Query';
 
 interface JwtPayload {
   email: string;
@@ -177,18 +176,18 @@ export class AuthService {
     );
   }
 
-  private getCommitmnetReposittory(qr?: QueryRunner) {
+  private getCommitmentRepository(qr?: QueryRunner) {
     return qr
       ? qr.manager.getRepository(Commitment)
       : this.commitmnetRepository;
   }
 
-  async registerSurveyCommtiment(
+  async registerSurveyCommitment(
     surveyId: number,
     commitmentDto: CommitmentDto,
     qr?: QueryRunner,
-  ) {
-    const repository = this.getCommitmnetReposittory(qr);
+  ): Promise<void> {
+    const repository = this.getCommitmentRepository(qr);
     await repository.save({
       commitmentHash: commitmentDto.commitment,
     });
