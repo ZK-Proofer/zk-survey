@@ -7,12 +7,16 @@ fn main(
     uuid: Field,
     merkle_index: Field,
     survey_id: pub Field,
-    nulifier: pub Field,
+    nullifier: pub Field,
     merkle_root: pub Field,
     merkle_proof: pub [Field; 10],
 ) {
-    let correct_nulifier = Poseidon2::hash([secret, uuid, survey_id], 3);
-    assert_eq(nulifier, correct_nulifier, f"Invalid nulifier: {nulifier} != {correct_nulifier}");
+    let correct_nullifier = Poseidon2::hash([secret, uuid, survey_id], 3);
+    assert_eq(
+        nullifier,
+        correct_nullifier,
+        f"Invalid nullifier: {nullifier} != {correct_nullifier}",
+    );
 
     let leaf_node = Poseidon2::hash([secret, uuid], 2);
     let mut mt = MerkleTree::new(hasher);
