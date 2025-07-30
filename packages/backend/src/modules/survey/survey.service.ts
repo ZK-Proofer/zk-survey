@@ -20,12 +20,17 @@ import {
   InvitationResponseDto,
   SaveCommitmentDto,
   VerificationResponseDto,
+  VerifyCommitmentDto,
+  VerifyCommitmentResponseDto,
 } from './dto/invitation.dto';
 import { SurveyStatus } from './const/survey-status.const';
 import { InvitationStatus } from './const/invitation-status.const';
 import { v4 as uuidv4 } from 'uuid';
 import { MerkleTreeResponseDto } from './dto/merkle-tree.dto';
 import { MerkleTreeService } from '../merkletree/merkletree.service';
+import { VerifyService } from '../verify/verify.service';
+import { SurveyResponse } from './entity/survey-response.entity';
+import { ResponseAnswer } from './entity/response-answer.entity';
 @Injectable()
 export class SurveyService {
   constructor(
@@ -40,6 +45,11 @@ export class SurveyService {
     @InjectRepository(Commitment)
     private commitmentRepository: Repository<Commitment>,
     private merkletreeService: MerkleTreeService,
+    private verifyService: VerifyService,
+    @InjectRepository(SurveyResponse)
+    private surveyResponseRepository: Repository<SurveyResponse>,
+    @InjectRepository(ResponseAnswer)
+    private responseAnswerRepository: Repository<ResponseAnswer>,
   ) {}
 
   private getSurveyRepository(qr?: QueryRunner) {
@@ -348,6 +358,44 @@ export class SurveyService {
     };
   }
 
+  async verifyCommitment(
+    uuid: string,
+    verifyCommitmentDto: VerifyCommitmentDto,
+  ): Promise<VerifyCommitmentResponseDto> {
+    const invitationRepository = this.getSurveyInvitationRepository();
+    const commitmentRepository = this.getCommitmentRepository();
+
+    const invitation = await invitationRepository.findOne({
+      where: { uuid },
+      relations: ['survey', 'survey.merkletree'],
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (!invitation.survey.merkletree) {
+      throw new NotFoundException('Merkle tree not found');
+    }
+
+    const commitment = await commitmentRepository.findOne({
+      where: { invitationId: invitation.id },
+    });
+
+    if (!commitment) {
+      throw new NotFoundException('Commitment not found');
+    }
+
+    if (commitment.commitmentHash !== verifyCommitmentDto.commitmentHash) {
+      throw new ConflictException('Commitment is not valid');
+    }
+
+    return {
+      success: true,
+      leaves: JSON.parse(invitation.survey.merkletree.leaves),
+    };
+  }
+
   private getSurveyInvitationRepository(qr?: QueryRunner) {
     return qr
       ? qr.manager.getRepository<SurveyInvitation>(SurveyInvitation)
@@ -393,12 +441,17 @@ export class SurveyService {
   async submitSurvey(
     uuid: string,
     submitSurveyDto: SubmitSurveyDto,
+    qr?: QueryRunner,
   ): Promise<void> {
-    const surveyRepository = this.getSurveyRepository();
-  }
+    const surveyInvitationRepository = this.getSurveyInvitationRepository(qr);
+    const commitmentRepository = this.getCommitmentRepository(qr);
+    const surveyResponseRepository = qr
+      ? qr.manager.getRepository<SurveyResponse>(SurveyResponse)
+      : this.surveyResponseRepository;
+    const responseAnswerRepository = qr
+      ? qr.manager.getRepository<ResponseAnswer>(ResponseAnswer)
+      : this.responseAnswerRepository;
 
-  async getMerkleTree(uuid: string): Promise<MerkleTreeResponseDto> {
-    const surveyInvitationRepository = this.getSurveyInvitationRepository();
     const surveyInvitation = await surveyInvitationRepository.findOne({
       where: { uuid },
       relations: ['survey', 'survey.merkletree'],
@@ -408,8 +461,52 @@ export class SurveyService {
       throw new NotFoundException('Survey invitation not found');
     }
 
-    return {
-      merkleLeaves: JSON.parse(surveyInvitation.survey.merkletree.leaves),
-    };
+    // 커밋먼트 검증
+    const commitment = await commitmentRepository.findOne({
+      where: { invitationId: surveyInvitation.id },
+    });
+
+    if (!commitment) {
+      throw new NotFoundException('Commitment not found');
+    }
+
+    if (commitment.commitmentHash !== submitSurveyDto.commitmentHash) {
+      throw new ConflictException('Commitment is not valid');
+    }
+
+    // Proof 검증
+    const savedVerification = await this.verifyService.verify(
+      submitSurveyDto.proof,
+      surveyInvitation.survey.id,
+      submitSurveyDto.nullifier,
+      JSON.parse(surveyInvitation.survey.merkletree.leaves),
+      qr!,
+    );
+
+    if (!savedVerification) {
+      throw new ConflictException('Proof is not valid');
+    }
+
+    // 설문 응답 저장
+    const surveyResponse = new SurveyResponse();
+    surveyResponse.survey_id = surveyInvitation.survey.id;
+    surveyResponse.nullifier_hash = submitSurveyDto.nullifier;
+
+    const savedResponse = await surveyResponseRepository.save(surveyResponse);
+
+    savedVerification.response_id = savedResponse.id;
+
+    // 답변들 저장
+    const answers = submitSurveyDto.answers.map((answerDto) => {
+      const answer = new ResponseAnswer();
+      answer.response_id = savedResponse.id;
+      answer.question_id = answerDto.questionId;
+      answer.answer_text = answerDto.answer;
+      answer.selected_option_id = answerDto.selected_option_id || null;
+      answer.rating_value = answerDto.rating_value || null;
+      return answer;
+    });
+
+    await responseAnswerRepository.save(answers);
   }
 }

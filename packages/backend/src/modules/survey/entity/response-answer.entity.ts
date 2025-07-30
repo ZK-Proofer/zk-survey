@@ -15,11 +15,11 @@ export class ResponseAnswer extends BaseEntity {
   @Column({ name: 'answer_text', type: 'text', nullable: true })
   answer_text: string;
 
-  @Column({ name: 'selected_option_id', nullable: true })
-  selected_option_id: number;
+  @Column({ name: 'selected_option_id', type: 'int', nullable: true })
+  selected_option_id: number | null;
 
-  @Column({ name: 'rating_value', nullable: true })
-  rating_value: number;
+  @Column({ name: 'rating_value', type: 'int', nullable: true })
+  rating_value: number | null;
 
   @ManyToOne(() => SurveyResponse, (response) => response.answers)
   @JoinColumn({ name: 'response_id' })

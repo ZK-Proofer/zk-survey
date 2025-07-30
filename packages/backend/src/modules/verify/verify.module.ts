@@ -9,5 +9,6 @@ import { MerkleTreeModule } from '../merkletree/merkletree.module';
   imports: [TypeOrmModule.forFeature([Verification]), MerkleTreeModule],
   controllers: [VerifyController],
   providers: [VerifyService],
+  exports: [VerifyService],
 })
 export class VerifyModule {}
