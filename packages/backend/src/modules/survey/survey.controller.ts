@@ -11,7 +11,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { SurveyService } from './survey.service';
-import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
+import {
+  CreateSurveyDto,
+  SubmitSurveyDto,
+  SurveyResponseDto,
+} from './dto/survey.dto';
 import {
   CreateInvitationDto,
   InvitationResponseDto,
@@ -24,6 +28,7 @@ import { SurveyStatus } from './const/survey-status.const';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { QueryRunnerDecorator } from '../../common/decorator/query-runner.decorator';
 import { QueryRunner } from 'typeorm';
+import { MerkleTreeResponseDto } from './dto/merkle-tree.dto';
 @Controller({ path: 'survey', version: '1' })
 export class SurveyController {
   constructor(private readonly surveyService: SurveyService) {}
@@ -108,10 +113,31 @@ export class SurveyController {
   }
 
   @Post('invitation/:uuid/commitment')
+  @UseInterceptors(TransactionInterceptor)
   async verifyCommitment(
     @Param('uuid') uuid: string,
     @Body() verifyCommitmentDto: SaveCommitmentDto,
+    @QueryRunnerDecorator() qr: QueryRunner,
   ): Promise<VerificationResponseDto> {
-    return await this.surveyService.saveCommitment(uuid, verifyCommitmentDto);
+    return await this.surveyService.saveCommitment(
+      uuid,
+      verifyCommitmentDto,
+      qr,
+    );
+  }
+
+  @Get('invitation/:uuid/merkle-tree')
+  async getMerkleTree(
+    @Param('uuid') uuid: string,
+  ): Promise<MerkleTreeResponseDto> {
+    return await this.surveyService.getMerkleTree(uuid);
+  }
+
+  @Post(':uuid/submit')
+  async submitSurvey(
+    @Param('uuid') uuid: string,
+    @Body() submitSurveyDto: SubmitSurveyDto,
+  ): Promise<void> {
+    return await this.surveyService.submitSurvey(uuid, submitSurveyDto);
   }
 }

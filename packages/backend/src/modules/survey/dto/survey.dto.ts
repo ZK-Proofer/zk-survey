@@ -87,3 +87,9 @@ export class QuestionOptionResponseDto {
   text: string;
   order_index: number;
 }
+
+export class SubmitSurveyDto {
+  @IsString()
+  @IsNotEmpty()
+  uuid: string;
+}

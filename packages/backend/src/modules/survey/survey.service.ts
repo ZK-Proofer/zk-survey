@@ -10,7 +10,11 @@ import { Question } from './entity/question.entity';
 import { QuestionOption } from './entity/question-option.entity';
 import { SurveyInvitation } from './entity/survey-invitation.entity';
 import { Commitment } from '../auth/entity/commitment.entity';
-import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
+import {
+  CreateSurveyDto,
+  SubmitSurveyDto,
+  SurveyResponseDto,
+} from './dto/survey.dto';
 import {
   CreateInvitationDto,
   InvitationResponseDto,
@@ -20,7 +24,8 @@ import {
 import { SurveyStatus } from './const/survey-status.const';
 import { InvitationStatus } from './const/invitation-status.const';
 import { v4 as uuidv4 } from 'uuid';
-
+import { MerkleTreeResponseDto } from './dto/merkle-tree.dto';
+import { MerkleTreeService } from '../merkletree/merkletree.service';
 @Injectable()
 export class SurveyService {
   constructor(
@@ -34,6 +39,7 @@ export class SurveyService {
     private surveyInvitationRepository: Repository<SurveyInvitation>,
     @InjectRepository(Commitment)
     private commitmentRepository: Repository<Commitment>,
+    private merkletreeService: MerkleTreeService,
   ) {}
 
   private getSurveyRepository(qr?: QueryRunner) {
@@ -106,6 +112,7 @@ export class SurveyService {
       questions.push(savedQuestion);
     }
 
+    await this.merkletreeService.createTree(savedSurvey.id, 10, qr);
     const response = this.mapToSurveyResponse(savedSurvey, questions);
 
     return response;
@@ -288,16 +295,36 @@ export class SurveyService {
   async saveCommitment(
     uuid: string,
     saveCommitmentDto: SaveCommitmentDto,
+    qr?: QueryRunner,
   ): Promise<VerificationResponseDto> {
-    const invitationRepository = this.getSurveyInvitationRepository();
-    const commitmentRepository = this.getCommitmentRepository();
+    const invitationRepository = this.getSurveyInvitationRepository(qr);
+    const commitmentRepository = this.getCommitmentRepository(qr);
 
     const invitation = await invitationRepository.findOne({
       where: { uuid },
+      relations: ['survey'],
     });
 
     if (!invitation) {
       throw new NotFoundException('Invitation not found');
+    }
+
+    const existingCommitment = await commitmentRepository.findOne({
+      where: { invitationId: invitation.id },
+    });
+
+    if (
+      existingCommitment &&
+      saveCommitmentDto.commitmentHash !== existingCommitment.commitmentHash
+    ) {
+      throw new ConflictException('Password is not valid');
+    }
+
+    if (existingCommitment) {
+      return {
+        success: true,
+        message: 'Commitment already exists',
+      };
     }
 
     // Commitment 저장
@@ -308,6 +335,12 @@ export class SurveyService {
     });
 
     await commitmentRepository.save(commitment);
+
+    await this.merkletreeService.addLeaf(
+      invitation.survey.id,
+      saveCommitmentDto.commitmentHash,
+      qr,
+    );
 
     return {
       success: true,
@@ -354,6 +387,29 @@ export class SurveyService {
         })),
       })),
       created_at: survey.createdAt,
+    };
+  }
+
+  async submitSurvey(
+    uuid: string,
+    submitSurveyDto: SubmitSurveyDto,
+  ): Promise<void> {
+    const surveyRepository = this.getSurveyRepository();
+  }
+
+  async getMerkleTree(uuid: string): Promise<MerkleTreeResponseDto> {
+    const surveyInvitationRepository = this.getSurveyInvitationRepository();
+    const surveyInvitation = await surveyInvitationRepository.findOne({
+      where: { uuid },
+      relations: ['survey', 'survey.merkletree'],
+    });
+
+    if (!surveyInvitation) {
+      throw new NotFoundException('Survey invitation not found');
+    }
+
+    return {
+      merkleLeaves: JSON.parse(surveyInvitation.survey.merkletree.leaves),
     };
   }
 }
