@@ -27,14 +27,13 @@ export class VerifyService {
     surveyId: number,
     nulifier: string,
     merkleProof: string[],
-    qr: QueryRunner,
   ) {
     if (!this.validateHexString(proof, false))
       throw new Error('Wrong proof format');
     if (!this.validateHexString(nulifier, true))
       throw new Error('Wrong nulfier format');
     merkleProof = merkleProof.map((node) => {
-      if (!this.validateHexString(node, true))
+      if (node !== '0' && !this.validateHexString(node, true))
         throw new Error('Wrong merkle proof node format');
       return this.attachPrefix(node);
     });
@@ -60,11 +59,6 @@ export class VerifyService {
     } catch (error) {
       throwVerificationError(error);
     }
-
-    const repository = this.getVerificationRepository(qr);
-    return await repository.save({
-      nullifier_hash: nulifier,
-    });
   }
 
   private validateHexString(str: string, require32bytes: boolean = false) {

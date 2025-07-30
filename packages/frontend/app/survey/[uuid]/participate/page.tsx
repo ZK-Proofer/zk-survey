@@ -190,7 +190,7 @@ export default function ParticipateSurvey() {
       const leaves = (await verifyResponse.json()).leaves;
 
       setIsGeneratingProof(true);
-      const { proof, nullifier } = await generateProof(
+      const { proof, nullifier, merkleProof } = await generateProof(
         password.trim(),
         uuid,
         survey.id,
@@ -198,7 +198,6 @@ export default function ParticipateSurvey() {
       );
       setIsGeneratingProof(false);
 
-      console.log(proof);
       // 설문 제출
       const submitResponse = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/${uuid}/submit`,
@@ -212,6 +211,7 @@ export default function ParticipateSurvey() {
             nullifier,
             answers,
             commitmentHash: newCommitmentHash,
+            merkleProof: merkleProof,
           }),
         }
       );

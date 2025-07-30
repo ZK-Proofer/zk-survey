@@ -13,6 +13,7 @@ import { SurveyInvitation } from './entity/survey-invitation.entity';
 import { Commitment } from '../auth/entity/commitment.entity';
 import { MerkleTreeModule } from '../merkletree/merkletree.module';
 import { VerifyModule } from '../verify/verify.module';
+import { Verification } from '../verify/entity/verification.entity';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { VerifyModule } from '../verify/verify.module';
       Commitment,
       SurveyResponse,
       ResponseAnswer,
+      Verification,
     ]),
     AuthModule,
     MemberModule,

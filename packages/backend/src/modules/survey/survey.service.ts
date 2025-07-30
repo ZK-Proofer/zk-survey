@@ -31,6 +31,7 @@ import { MerkleTreeService } from '../merkletree/merkletree.service';
 import { VerifyService } from '../verify/verify.service';
 import { SurveyResponse } from './entity/survey-response.entity';
 import { ResponseAnswer } from './entity/response-answer.entity';
+import { Verification } from '../verify/entity/verification.entity';
 @Injectable()
 export class SurveyService {
   constructor(
@@ -50,6 +51,8 @@ export class SurveyService {
     private surveyResponseRepository: Repository<SurveyResponse>,
     @InjectRepository(ResponseAnswer)
     private responseAnswerRepository: Repository<ResponseAnswer>,
+    @InjectRepository(Verification)
+    private verificationRepository: Repository<Verification>,
   ) {}
 
   private getSurveyRepository(qr?: QueryRunner) {
@@ -445,6 +448,9 @@ export class SurveyService {
   ): Promise<void> {
     const surveyInvitationRepository = this.getSurveyInvitationRepository(qr);
     const commitmentRepository = this.getCommitmentRepository(qr);
+    const verificationRepository = qr
+      ? qr.manager.getRepository<Verification>(Verification)
+      : this.verificationRepository;
     const surveyResponseRepository = qr
       ? qr.manager.getRepository<SurveyResponse>(SurveyResponse)
       : this.surveyResponseRepository;
@@ -475,17 +481,18 @@ export class SurveyService {
     }
 
     // Proof 검증
-    const savedVerification = await this.verifyService.verify(
-      submitSurveyDto.proof,
-      surveyInvitation.survey.id,
-      submitSurveyDto.nullifier,
-      JSON.parse(surveyInvitation.survey.merkletree.leaves),
-      qr!,
-    );
-
-    if (!savedVerification) {
-      throw new ConflictException('Proof is not valid');
+    try {
+      await this.verifyService.verify(
+        submitSurveyDto.proof,
+        surveyInvitation.survey.id,
+        submitSurveyDto.nullifier,
+        submitSurveyDto.merkleProof,
+      );
+    } catch (error) {
+      throw new ConflictException(error.message);
     }
+    const verification = new Verification();
+    verification.nullifier_hash = submitSurveyDto.nullifier;
 
     // 설문 응답 저장
     const surveyResponse = new SurveyResponse();
@@ -494,7 +501,8 @@ export class SurveyService {
 
     const savedResponse = await surveyResponseRepository.save(surveyResponse);
 
-    savedVerification.response_id = savedResponse.id;
+    verification.response_id = savedResponse.id;
+    await verificationRepository.save(verification);
 
     // 답변들 저장
     const answers = submitSurveyDto.answers.map((answerDto) => {
