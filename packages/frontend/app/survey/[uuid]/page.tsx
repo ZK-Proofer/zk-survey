@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { makeCommitment } from "@/lib/zk";
+import { ZkUtil } from "@/lib/zk";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 
@@ -82,7 +82,7 @@ export default function SurveyInvitationPage() {
 
     setIsSubmitting(true);
     try {
-      const commitmentHash = await makeCommitment(password.trim(), uuid);
+      const commitmentHash = await ZkUtil.makeCommitment(password.trim(), uuid);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/invitation/${uuid}/commitment`,

@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { generateProof, makeCommitment } from "@/lib/zk";
+import { ZkUtil } from "@/lib/zk";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 
@@ -168,7 +168,10 @@ export default function ParticipateSurvey() {
 
     try {
       // 새로운 커밋먼트 해시 생성
-      const newCommitmentHash = await makeCommitment(password.trim(), uuid);
+      const newCommitmentHash = await ZkUtil.makeCommitment(
+        password.trim(),
+        uuid
+      );
 
       // 백엔드에 커밋먼트 검증 요청
       const verifyResponse = await fetch(
@@ -190,7 +193,7 @@ export default function ParticipateSurvey() {
       const leaves = (await verifyResponse.json()).leaves;
 
       setIsGeneratingProof(true);
-      const { proof, nullifier, merkleProof } = await generateProof(
+      const { proof, nullifier, merkleProof } = await ZkUtil.generateProof(
         password.trim(),
         uuid,
         survey.id,
