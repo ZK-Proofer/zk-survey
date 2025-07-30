@@ -24,3 +24,14 @@ export class VerificationResponseDto {
   success: boolean;
   message?: string;
 }
+
+export class VerifyCommitmentDto {
+  @IsString()
+  @IsNotEmpty()
+  commitmentHash: string;
+}
+
+export class VerifyCommitmentResponseDto {
+  success: boolean;
+  leaves: string[];
+}

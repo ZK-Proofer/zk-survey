@@ -88,8 +88,39 @@ export class QuestionOptionResponseDto {
   order_index: number;
 }
 
+export class AnswerDto {
+  @IsNumber()
+  @IsNotEmpty()
+  questionId: number;
+
+  @IsString()
+  @IsNotEmpty()
+  answer: string;
+
+  @IsNumber()
+  @IsOptional()
+  selected_option_id?: number;
+
+  @IsNumber()
+  @IsOptional()
+  rating_value?: number;
+}
+
 export class SubmitSurveyDto {
   @IsString()
   @IsNotEmpty()
-  uuid: string;
+  commitmentHash: string;
+
+  @IsString()
+  @IsNotEmpty()
+  proof: string;
+
+  @IsString()
+  @IsNotEmpty()
+  nullifier: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AnswerDto)
+  answers: AnswerDto[];
 }

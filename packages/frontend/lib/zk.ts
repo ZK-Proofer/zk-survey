@@ -112,7 +112,7 @@ export async function generateProof(
       merkle_index: merkleIndex,
       merkle_proof: merkleProof,
       survey_id: BigInt(surveyId).toString(),
-      nullifier: nullifier,
+      nulifier: nullifier,
       merkle_root: root.toString(),
     });
 

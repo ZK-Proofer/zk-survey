@@ -21,6 +21,8 @@ import {
   InvitationResponseDto,
   SaveCommitmentDto,
   VerificationResponseDto,
+  VerifyCommitmentDto,
+  VerifyCommitmentResponseDto,
 } from './dto/invitation.dto';
 import { AccessTokenGuard } from '../auth/guard/bearer-token.guard';
 import { TokenMember } from '../member/decorator/member.decorator';
@@ -114,30 +116,29 @@ export class SurveyController {
 
   @Post('invitation/:uuid/commitment')
   @UseInterceptors(TransactionInterceptor)
+  async saveCommitment(
+    @Param('uuid') uuid: string,
+    @Body() saveCommitmentDto: SaveCommitmentDto,
+    @QueryRunnerDecorator() qr: QueryRunner,
+  ): Promise<VerificationResponseDto> {
+    return await this.surveyService.saveCommitment(uuid, saveCommitmentDto, qr);
+  }
+
+  @Post('invitation/:uuid/commitment/verify')
   async verifyCommitment(
     @Param('uuid') uuid: string,
     @Body() verifyCommitmentDto: SaveCommitmentDto,
-    @QueryRunnerDecorator() qr: QueryRunner,
-  ): Promise<VerificationResponseDto> {
-    return await this.surveyService.saveCommitment(
-      uuid,
-      verifyCommitmentDto,
-      qr,
-    );
-  }
-
-  @Get('invitation/:uuid/merkle-tree')
-  async getMerkleTree(
-    @Param('uuid') uuid: string,
-  ): Promise<MerkleTreeResponseDto> {
-    return await this.surveyService.getMerkleTree(uuid);
+  ): Promise<VerifyCommitmentResponseDto> {
+    return await this.surveyService.verifyCommitment(uuid, verifyCommitmentDto);
   }
 
   @Post(':uuid/submit')
+  @UseInterceptors(TransactionInterceptor)
   async submitSurvey(
     @Param('uuid') uuid: string,
     @Body() submitSurveyDto: SubmitSurveyDto,
+    @QueryRunnerDecorator() qr: QueryRunner,
   ): Promise<void> {
-    return await this.surveyService.submitSurvey(uuid, submitSurveyDto);
+    return await this.surveyService.submitSurvey(uuid, submitSurveyDto, qr);
   }
 }

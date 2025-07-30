@@ -62,7 +62,7 @@ export class VerifyService {
     }
 
     const repository = this.getVerificationRepository(qr);
-    await repository.save({
+    return await repository.save({
       nullifier_hash: nulifier,
     });
   }
