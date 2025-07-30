@@ -9,6 +9,7 @@ import { AuthModule } from '../auth/auth.module';
 import { MemberModule } from '../member/member.module';
 import { SurveyInvitation } from './entity/survey-invitation.entity';
 import { Commitment } from '../auth/entity/commitment.entity';
+import { MerkleTreeModule } from '../merkletree/merkletree.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -20,6 +21,7 @@ import { Commitment } from '../auth/entity/commitment.entity';
     ]),
     AuthModule,
     MemberModule,
+    MerkleTreeModule,
   ],
   controllers: [SurveyController],
   providers: [SurveyService],

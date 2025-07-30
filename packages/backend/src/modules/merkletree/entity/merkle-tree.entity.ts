@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToOne } from 'typeorm';
 import { Survey } from 'src/modules/survey/entity/survey.entity';
 import { BaseEntity } from 'src/common/entity/base.entity';
 
@@ -13,6 +13,6 @@ export class MerkleTree extends BaseEntity {
   @Column({ type: 'mediumtext' })
   leaves: string;
 
-  @ManyToOne(() => Survey)
+  @OneToOne(() => Survey, (survey) => survey.merkletree)
   survey: Survey;
 }

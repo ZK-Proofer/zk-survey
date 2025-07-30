@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -9,19 +9,31 @@ import { useAuth } from "@/hooks/auth/useAuth";
 function LoginContent() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleGoogleCallback = async (code: string) => {
-    try {
-      await login(code);
-    } catch (error) {
-      console.error("Login failed:", error);
+  const handleGoogleCallback = useCallback(
+    async (code: string) => {
+      try {
+        await login(code);
+      } catch (error) {
+        console.error("Login failed:", error);
+        setIsProcessing(false);
+      }
+    },
+    [login]
+  );
+
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (code && !isProcessing) {
+      setIsProcessing(true);
+      handleGoogleCallback(code);
     }
-  };
+  }, [searchParams, handleGoogleCallback, isProcessing]);
 
-  // Google OAuth callback 처리
+  // Google OAuth callback 처리 중일 때
   const code = searchParams.get("code");
-  if (code) {
-    handleGoogleCallback(code);
+  if (code && isProcessing) {
     return <LoadingSpinner message="로그인 중..." />;
   }
 

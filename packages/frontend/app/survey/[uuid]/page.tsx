@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Barretenberg, BarretenbergSync, Fr } from "@aztec/bb.js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { makeCommitment } from "@/lib/zk";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
+import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 
 interface SurveyInfo {
   id: number;
@@ -53,16 +54,14 @@ export default function SurveyInvitationPage() {
           `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/invitation/${uuid}`
         );
 
-        console.log(response);
-
         if (!response.ok) {
-          throw new Error("Invalid invitation link");
+          throw new Error("유효하지 않은 초대 링크입니다.");
         }
 
         const data = await response.json();
         setSurvey(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
+        setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
       } finally {
         setLoading(false);
       }
@@ -98,7 +97,7 @@ export default function SurveyInvitationPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Invalid commitment");
+        throw new Error(errorData.message || "커밋먼트 검증에 실패했습니다.");
       }
 
       const data = await response.json();
@@ -116,48 +115,26 @@ export default function SurveyInvitationPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">설문 정보를 불러오는 중...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner message="설문 정보를 불러오는 중..." />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-red-600">오류가 발생했습니다</CardTitle>
-            <CardDescription className="text-gray-600">{error}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => window.location.reload()} className="w-full">
-              다시 시도
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <ErrorDisplay
+        title="오류가 발생했습니다"
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
   if (!survey) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-red-600">
-              설문을 찾을 수 없습니다
-            </CardTitle>
-            <CardDescription className="text-gray-600">
-              초대링크가 올바르지 않거나 만료되었습니다.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <ErrorDisplay
+        title="설문을 찾을 수 없습니다"
+        message="초대링크가 올바르지 않거나 만료되었습니다."
+        showRetry={false}
+      />
     );
   }
 

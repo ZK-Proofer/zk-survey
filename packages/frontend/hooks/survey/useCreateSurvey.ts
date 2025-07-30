@@ -87,7 +87,7 @@ export function useCreateSurvey() {
       setIsSubmitting(true);
       const transformedSurvey = transformSurveyForBackend(survey);
       const result = await SurveyService.createSurvey(transformedSurvey);
-      router.push(`/survey/${result.id}/success`);
+      router.push(`/my-surveys/${result.id}`);
       return result;
     } catch (error) {
       throw error;
