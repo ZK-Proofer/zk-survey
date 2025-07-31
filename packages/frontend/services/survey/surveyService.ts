@@ -117,9 +117,12 @@ export class SurveyService {
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+      if (response.status === 409 && errorData.message?.includes("closed")) {
+        throw new Error("이 설문은 이미 종료되어 참여할 수 없습니다.");
+      }
       throw new Error("Failed to fetch survey preview");
     }
-
     return response.json();
   }
 
@@ -145,6 +148,24 @@ export class SurveyService {
     if (!response.ok) {
       throw new Error("Failed to update survey status");
     }
+  }
+
+  static async updateSurvey(
+    id: number,
+    surveyData: CreateSurveyDto
+  ): Promise<Survey> {
+    const response = await fetch(`${BACKEND_URL}/api/v1/survey/${id}`, {
+      method: "PUT",
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(surveyData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to update survey");
+    }
+
+    return response.json();
   }
 
   static async createInvitation(

@@ -253,9 +253,11 @@ export default function SurveyDetailPage() {
 
       const data = await response.json();
       const newInvitation = {
+        id: data.id,
         email: email.trim(),
         uuid: data.uuid,
         status: data.status,
+        created_at: data.created_at,
       };
       setInvitations((prev) => [...prev, newInvitation]);
 
@@ -291,6 +293,10 @@ export default function SurveyDetailPage() {
   const handleDeleteInvitation = (email: string) => (e: React.MouseEvent) => {
     e.preventDefault();
     deleteInvitation(email);
+  };
+
+  const handleSendInvitation = (uuid: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
   };
 
   if (loading) {
@@ -385,6 +391,14 @@ export default function SurveyDetailPage() {
               )}
               <Button asChild>
                 <Link href={`/survey/preview/${survey.id}`}>미리보기</Link>
+              </Button>
+              <Button
+                asChild
+                variant={survey.status === "CLOSED" ? "default" : "outline"}
+              >
+                <Link href={`/my-surveys/${survey.id}/results`}>
+                  {survey.status === "CLOSED" ? "결과 보기" : "결과 보기"}
+                </Link>
               </Button>
             </div>
           </div>
@@ -575,6 +589,13 @@ export default function SurveyDetailPage() {
                         </div>
                         <div className="flex space-x-2">
                           <Button
+                            onClick={handleSendInvitation(invitation.uuid)}
+                            variant="default"
+                            size="sm"
+                          >
+                            전송
+                          </Button>
+                          <Button
                             onClick={handleCopyLink(invitation.uuid)}
                             variant="outline"
                             size="sm"
@@ -634,9 +655,17 @@ export default function SurveyDetailPage() {
             <CardHeader>
               <CardTitle className="text-red-800">종료된 설문</CardTitle>
               <CardDescription className="text-red-700">
-                이 설문은 이미 종료되었습니다. 새로운 참여자를 받을 수 없습니다.
+                이 설문은 이미 종료되었습니다. 새로운 참여자를 받을 수 없으며,
+                기존 참여자들도 더 이상 응답을 제출할 수 없습니다.
               </CardDescription>
             </CardHeader>
+            <CardContent>
+              <div className="text-sm text-red-600">
+                <p>• 새로운 초대링크를 생성할 수 없습니다</p>
+                <p>• 기존 초대링크로 접근해도 참여할 수 없습니다</p>
+                <p>• 설문 결과는 계속 확인할 수 있습니다</p>
+              </div>
+            </CardContent>
           </Card>
         )}
       </div>

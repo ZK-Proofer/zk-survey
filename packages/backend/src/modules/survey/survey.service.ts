@@ -189,6 +189,13 @@ export class SurveyService {
       throw new NotFoundException('Survey not found');
     }
 
+    // 설문이 종료된 상태인지 확인
+    if (invitation.survey.status === SurveyStatus.CLOSED) {
+      throw new ConflictException(
+        'This survey has been closed and is no longer accepting responses',
+      );
+    }
+
     const questions = await this.questionRepository.find({
       where: { survey_id: invitation.survey.id },
       relations: ['options'],
@@ -496,6 +503,13 @@ export class SurveyService {
       throw new NotFoundException('Survey invitation not found');
     }
 
+    // 설문이 종료된 상태인지 확인
+    if (surveyInvitation.survey.status === SurveyStatus.CLOSED) {
+      throw new ConflictException(
+        'This survey has been closed and is no longer accepting responses',
+      );
+    }
+
     // 커밋먼트 검증
     const commitment = await commitmentRepository.findOne({
       where: { invitationId: surveyInvitation.id },
@@ -544,5 +558,171 @@ export class SurveyService {
     });
 
     await responseAnswerRepository.save(answers);
+  }
+
+  async updateSurvey(
+    id: number,
+    updateSurveyDto: CreateSurveyDto,
+    authorId: number,
+    qr?: QueryRunner,
+  ): Promise<SurveyResponseDto> {
+    const surveyRepository = this.getSurveyRepository(qr);
+    const questionRepository = this.getQuestionRepository(qr);
+    const questionOptionRepository = this.getQuestionOptionRepository(qr);
+
+    // 설문이 존재하고 작성자인지 확인
+    const existingSurvey = await surveyRepository.findOne({
+      where: { id, author_id: authorId },
+    });
+
+    if (!existingSurvey) {
+      throw new NotFoundException('Survey not found');
+    }
+
+    // 설문이 발행된 상태라면 수정 불가
+    if (existingSurvey.status === SurveyStatus.ACTIVE) {
+      throw new ConflictException('Cannot update an active survey');
+    }
+
+    // 설문 기본 정보 업데이트
+    existingSurvey.title = updateSurveyDto.title;
+    existingSurvey.description = updateSurveyDto.description || '';
+    await surveyRepository.save(existingSurvey);
+
+    // 기존 질문들 삭제
+    await questionRepository.delete({ survey_id: id });
+
+    // 새로운 질문들 생성
+    const questions: Question[] = [];
+    for (let i = 0; i < updateSurveyDto.questions.length; i++) {
+      const questionDto = updateSurveyDto.questions[i];
+
+      const question = questionRepository.create({
+        survey_id: id,
+        text: questionDto.text,
+        type: questionDto.type,
+        order_index: questionDto.order_index ?? i,
+        is_required: questionDto.is_required ?? true,
+      });
+
+      const savedQuestion = await questionRepository.save(question);
+
+      if (questionDto.options && questionDto.options.length > 0) {
+        const options: QuestionOption[] = [];
+        for (let j = 0; j < questionDto.options.length; j++) {
+          const optionDto = questionDto.options[j];
+
+          const option = questionOptionRepository.create({
+            question_id: savedQuestion.id,
+            text: optionDto.text,
+            order_index: optionDto.order_index ?? j,
+          });
+
+          const savedOption = await questionOptionRepository.save(option);
+          options.push(savedOption);
+        }
+        savedQuestion.options = options;
+      }
+
+      questions.push(savedQuestion);
+    }
+
+    return this.mapToSurveyResponse(existingSurvey, questions);
+  }
+
+  async getSurveyResults(id: number, authorId: number): Promise<any> {
+    const surveyRepository = this.getSurveyRepository();
+    const surveyResponseRepository = this.surveyResponseRepository;
+    const responseAnswerRepository = this.responseAnswerRepository;
+
+    // 설문이 존재하고 작성자인지 확인
+    const survey = await surveyRepository.findOne({
+      where: { id, author_id: authorId },
+      relations: ['questions', 'questions.options'],
+    });
+
+    if (!survey) {
+      throw new NotFoundException('Survey not found');
+    }
+
+    // 설문 응답들 가져오기
+    const responses = await surveyResponseRepository.find({
+      where: { survey_id: id },
+      relations: ['answers'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 각 질문별 통계 계산
+    const questionStats = survey.questions.map((question) => {
+      const answers = responses.flatMap((response) =>
+        response.answers.filter((answer) => answer.question_id === question.id),
+      );
+
+      let stats: any = {
+        questionId: question.id,
+        questionText: question.text,
+        questionType: question.type,
+        totalAnswers: answers.length,
+        answers: answers.map((answer) => ({
+          answerText: answer.answer_text,
+          selectedOptionId: answer.selected_option_id,
+          ratingValue: answer.rating_value,
+          createdAt: answer.createdAt,
+        })),
+      };
+
+      // 질문 유형별 통계 계산
+      if (question.type === 'SINGLE_CHOICE' && question.options) {
+        const optionStats = question.options.map((option) => ({
+          optionId: option.id,
+          optionText: option.text,
+          count: answers.filter(
+            (answer) => answer.selected_option_id === option.id,
+          ).length,
+        }));
+        stats.optionStats = optionStats;
+      } else if (question.type === 'MULTIPLE_CHOICE' && question.options) {
+        const optionStats = question.options.map((option) => ({
+          optionId: option.id,
+          optionText: option.text,
+          count: answers.filter(
+            (answer) =>
+              answer.answer_text && answer.answer_text.includes(option.text),
+          ).length,
+        }));
+        stats.optionStats = optionStats;
+      } else if (question.type === 'RATING') {
+        const ratingStats = [1, 2, 3, 4, 5].map((rating) => ({
+          rating,
+          count: answers.filter((answer) => answer.rating_value === rating)
+            .length,
+        }));
+        stats.ratingStats = ratingStats;
+      }
+
+      return stats;
+    });
+
+    return {
+      survey: {
+        id: survey.id,
+        title: survey.title,
+        description: survey.description,
+        status: survey.status,
+        totalResponses: responses.length,
+      },
+      questionStats,
+      responses: responses.map((response) => ({
+        id: response.id,
+        nullifierHash: response.nullifier_hash,
+        createdAt: response.createdAt,
+        answers: response.answers.map((answer) => ({
+          questionId: answer.question_id,
+          answerText: answer.answer_text,
+          selectedOptionId: answer.selected_option_id,
+          ratingValue: answer.rating_value,
+        })),
+      })),
+    };
   }
 }
