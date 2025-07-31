@@ -193,7 +193,7 @@ export default function ParticipateSurvey() {
       const leaves = (await verifyResponse.json()).leaves;
 
       setIsGeneratingProof(true);
-      const { proof, nullifier, merkleProof } = await ZkUtil.generateProof(
+      const { proof, nullifier } = await ZkUtil.generateProof(
         password.trim(),
         uuid,
         survey.id,
@@ -214,7 +214,6 @@ export default function ParticipateSurvey() {
             nullifier,
             answers,
             commitmentHash: newCommitmentHash,
-            merkleProof: merkleProof,
           }),
         }
       );

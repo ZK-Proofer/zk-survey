@@ -22,21 +22,11 @@ export class VerifyService {
     return this.verificationRepository;
   }
 
-  async verify(
-    proof: string,
-    surveyId: number,
-    nulifier: string,
-    merkleProof: string[],
-  ) {
+  async verify(proof: string, surveyId: number, nulifier: string) {
     if (!this.validateHexString(proof, false))
       throw new Error('Wrong proof format');
     if (!this.validateHexString(nulifier, true))
       throw new Error('Wrong nulfier format');
-    merkleProof = merkleProof.map((node) => {
-      if (node !== '0' && !this.validateHexString(node, true))
-        throw new Error('Wrong merkle proof node format');
-      return this.attachPrefix(node);
-    });
 
     const merkleRoot = (await this.merkleTreeService.getTree(surveyId)).root;
     const bufferProof = Buffer.from(proof.replace(/^0x/i, ''), 'hex');
@@ -51,7 +41,6 @@ export class VerifyService {
           this.attachPrefix(surveyId.toString(16)),
           this.attachPrefix(nulifier),
           this.attachPrefix(merkleRoot.toString()),
-          ...merkleProof,
         ],
       });
 
