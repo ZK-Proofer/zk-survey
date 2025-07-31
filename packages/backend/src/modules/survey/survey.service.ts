@@ -515,7 +515,6 @@ export class SurveyService {
         submitSurveyDto.proof,
         surveyInvitation.survey.id,
         submitSurveyDto.nullifier,
-        submitSurveyDto.merkleProof,
       );
     } catch (error) {
       throw new ConflictException(error.message);

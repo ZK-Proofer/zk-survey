@@ -6,10 +6,10 @@ fn main(
     secret: Field,
     uuid: Field,
     merkle_index: Field,
+    merkle_proof: [Field; 10],
     survey_id: pub Field,
     nullifier: pub Field,
     merkle_root: pub Field,
-    merkle_proof: pub [Field; 10],
 ) {
     let correct_nullifier = Poseidon2::hash([secret, uuid, survey_id], 3);
     assert_eq(
@@ -42,7 +42,7 @@ fn test_main() {
     let path = make_path_with_zero_node(leaf_node);
     let merkle_root = MerkleTree::new(hasher).calculate_root(leaf_node, 0, path);
 
-    main(secret, uuid, 0, survey_id, nulifier, merkle_root, path);
+    main(secret, uuid, 0, path, survey_id, nulifier, merkle_root);
 }
 
 fn make_path_with_zero_node(leaf_node: Field) -> [Field; 10] {

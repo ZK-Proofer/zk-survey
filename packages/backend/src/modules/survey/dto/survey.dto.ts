@@ -127,11 +127,6 @@ export class SubmitSurveyDto {
   nullifier: string;
 
   @IsArray()
-  @IsNotEmpty()
-  @IsString({ each: true })
-  merkleProof: string[];
-
-  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => AnswerDto)
   answers: AnswerDto[];
