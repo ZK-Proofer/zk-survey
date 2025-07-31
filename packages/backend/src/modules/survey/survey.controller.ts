@@ -62,6 +62,13 @@ export class SurveyController {
     return await this.surveyService.getSurveyById(id);
   }
 
+  @Get(':id/preview')
+  async getSurveyPreview(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SurveyResponseDto> {
+    return await this.surveyService.getSurveyPreview(id);
+  }
+
   @Put(':id/status')
   @UseGuards(AccessTokenGuard)
   @UseInterceptors(TransactionInterceptor)

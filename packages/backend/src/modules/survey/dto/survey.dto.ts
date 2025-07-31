@@ -71,6 +71,13 @@ export class SurveyResponseDto {
   } | null;
   questions: QuestionResponseDto[];
   created_at: Date;
+  invitations: {
+    id: number;
+    email: string;
+    uuid: string;
+    status: string;
+    created_at: Date;
+  }[];
 }
 
 export class QuestionResponseDto {

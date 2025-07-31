@@ -78,6 +78,7 @@ export default function SurveyDetailPage() {
 
         const data = await response.json();
         setSurvey(data);
+        setInvitations(data.invitations);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
       } finally {
@@ -383,7 +384,7 @@ export default function SurveyDetailPage() {
                 </Button>
               )}
               <Button asChild>
-                <Link href={`/survey/${survey.id}`}>미리보기</Link>
+                <Link href={`/survey/preview/${survey.id}`}>미리보기</Link>
               </Button>
             </div>
           </div>

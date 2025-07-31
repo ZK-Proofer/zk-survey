@@ -109,6 +109,20 @@ export class SurveyService {
     return response.json();
   }
 
+  static async getSurveyPreview(id: number): Promise<Survey> {
+    const response = await fetch(`${BACKEND_URL}/api/v1/survey/${id}/preview`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch survey preview");
+    }
+
+    return response.json();
+  }
+
   static async getSurveyByUuid(uuid: string): Promise<Survey> {
     const response = await fetch(
       `${BACKEND_URL}/api/v1/survey/invitation/${uuid}`

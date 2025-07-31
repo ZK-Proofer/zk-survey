@@ -79,7 +79,7 @@ export function SurveyCard({ survey }: SurveyCardProps) {
             <Link href={`/my-surveys/${survey.id}`}>상세보기</Link>
           </Button>
           <Button asChild size="sm">
-            <Link href={`/survey/${survey.id}`}>미리보기</Link>
+            <Link href={`/survey/preview/${survey.id}`}>미리보기</Link>
           </Button>
         </div>
       </CardContent>

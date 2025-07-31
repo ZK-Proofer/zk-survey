@@ -7,7 +7,6 @@ import {
   UseInterceptors,
   Param,
   ParseIntPipe,
-  HttpCode,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {

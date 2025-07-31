@@ -136,6 +136,27 @@ export class SurveyService {
 
     const survey = await surveyRepository.findOne({
       where: { id },
+      relations: ['author', 'invitations'],
+    });
+
+    if (!survey) {
+      throw new NotFoundException('Survey not found');
+    }
+
+    const questions = await this.questionRepository.find({
+      where: { survey_id: id },
+      relations: ['options'],
+      order: { order_index: 'ASC' },
+    });
+
+    return this.mapToSurveyResponse(survey, questions);
+  }
+
+  async getSurveyPreview(id: number): Promise<SurveyResponseDto> {
+    const surveyRepository = this.getSurveyRepository();
+
+    const survey = await surveyRepository.findOne({
+      where: { id },
       relations: ['author'],
     });
 
@@ -437,6 +458,14 @@ export class SurveyService {
           order_index: o.order_index,
         })),
       })),
+      invitations:
+        survey.invitations?.map((i) => ({
+          id: i.id,
+          email: i.email,
+          uuid: i.uuid,
+          status: i.status,
+          created_at: i.createdAt,
+        })) ?? [],
       created_at: survey.createdAt,
     };
   }
