@@ -132,7 +132,7 @@ export class AuthService {
 
     return this.jwtService.sign(payload, {
       secret: this.configService.get<string>(ENV_JWT_SECRET_KEY),
-      expiresIn: isRefreshToken ? '7d' : '15m',
+      expiresIn: isRefreshToken ? '7d' : '1d',
     });
   }
 

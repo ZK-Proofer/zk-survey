@@ -11,6 +11,7 @@ import { BaseEntity } from 'src/common/entity/base.entity';
 import { SurveyStatus } from '../const/survey-status.const';
 import { Question } from './question.entity';
 import { MerkleTree } from '../../merkletree/entity/merkle-tree.entity';
+import { SurveyInvitation } from './survey-invitation.entity';
 
 @Entity('surveys')
 export class Survey extends BaseEntity {
@@ -35,4 +36,7 @@ export class Survey extends BaseEntity {
 
   @OneToOne(() => MerkleTree, (merkletree) => merkletree.survey)
   merkletree: MerkleTree;
+
+  @OneToMany(() => SurveyInvitation, (invitation) => invitation.survey)
+  invitations: SurveyInvitation[];
 }
