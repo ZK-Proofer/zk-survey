@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,7 @@ interface SurveyData {
   questions: Question[];
 }
 
-export default function CreateSurveyPage() {
+function CreateSurveyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -292,5 +292,13 @@ export default function CreateSurveyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CreateSurveyPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner message="Loading..." />}>
+      <CreateSurveyContent />
+    </Suspense>
   );
 }
