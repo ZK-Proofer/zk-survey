@@ -55,7 +55,14 @@ export default function SurveyInvitationPage() {
         );
 
         if (!response.ok) {
-          throw new Error("유효하지 않은 초대 링크입니다.");
+          const errorData = await response.json();
+          if (
+            response.status === 409 &&
+            errorData.message?.includes("closed")
+          ) {
+            throw new Error("이 설문은 이미 종료되어 참여할 수 없습니다.");
+          }
+          throw new Error("Failed to fetch survey");
         }
 
         const data = await response.json();

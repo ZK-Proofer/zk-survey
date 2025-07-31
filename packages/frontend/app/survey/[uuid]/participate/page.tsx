@@ -101,7 +101,11 @@ export default function ParticipateSurvey() {
         }));
         setAnswers(initialAnswers);
       } else {
-        setError("Survey not found.");
+        const errorData = await response.json();
+        if (response.status === 409 && errorData.message?.includes("closed")) {
+          throw new Error("이 설문은 이미 종료되어 참여할 수 없습니다.");
+        }
+        throw new Error("Failed to fetch survey");
       }
     } catch (error) {
       setError("Failed to load survey information.");
@@ -223,6 +227,12 @@ export default function ParticipateSurvey() {
         router.push(`/survey/${uuid}/complete`);
       } else {
         const errorData = await submitResponse.json();
+        if (
+          submitResponse.status === 409 &&
+          errorData.message?.includes("closed")
+        ) {
+          throw new Error("이 설문은 이미 종료되어 참여할 수 없습니다.");
+        }
         throw new Error(errorData.message || "Failed to submit survey.");
       }
     } catch (error) {

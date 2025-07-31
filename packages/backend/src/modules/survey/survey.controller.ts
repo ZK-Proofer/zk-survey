@@ -69,6 +69,15 @@ export class SurveyController {
     return await this.surveyService.getSurveyPreview(id);
   }
 
+  @Get(':id/results')
+  @UseGuards(AccessTokenGuard)
+  async getSurveyResults(
+    @Param('id', ParseIntPipe) id: number,
+    @TokenMember('id') memberId: number,
+  ): Promise<any> {
+    return await this.surveyService.getSurveyResults(id, memberId);
+  }
+
   @Put(':id/status')
   @UseGuards(AccessTokenGuard)
   @UseInterceptors(TransactionInterceptor)
@@ -81,6 +90,23 @@ export class SurveyController {
     return await this.surveyService.updateSurveyStatus(
       id,
       status,
+      memberId,
+      qr,
+    );
+  }
+
+  @Put(':id')
+  @UseGuards(AccessTokenGuard)
+  @UseInterceptors(TransactionInterceptor)
+  async updateSurvey(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateSurveyDto: CreateSurveyDto,
+    @TokenMember('id') memberId: number,
+    @QueryRunnerDecorator() qr: QueryRunner,
+  ): Promise<SurveyResponseDto> {
+    return await this.surveyService.updateSurvey(
+      id,
+      updateSurveyDto,
       memberId,
       qr,
     );
