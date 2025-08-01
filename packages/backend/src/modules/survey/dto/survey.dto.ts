@@ -1,89 +1,115 @@
 import {
   IsString,
-  IsNotEmpty,
   IsOptional,
   IsArray,
-  IsEnum,
-  IsBoolean,
   IsNumber,
+  IsBoolean,
   ValidateNested,
+  IsEnum,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { QuestionType } from '../const/question-type.const';
 
-export { QuestionType };
+export enum QuestionType {
+  TEXT = 'TEXT',
+  SINGLE_CHOICE = 'SINGLE_CHOICE',
+  MULTIPLE_CHOICE = 'MULTIPLE_CHOICE',
+  RATING = 'RATING',
+}
 
-export class QuestionOptionDto {
+export class CreateQuestionOptionDto {
   @IsString()
-  @IsNotEmpty()
   text: string;
 
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
   order_index?: number;
 }
 
-export class QuestionDto {
+export class CreateQuestionDto {
   @IsString()
-  @IsNotEmpty()
   text: string;
 
   @IsEnum(QuestionType)
   type: QuestionType;
 
-  @IsNumber()
   @IsOptional()
+  @IsNumber()
   order_index?: number;
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
   is_required?: boolean;
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => QuestionOptionDto)
-  @IsOptional()
-  options?: QuestionOptionDto[];
+  @Type(() => CreateQuestionOptionDto)
+  options?: CreateQuestionOptionDto[];
 }
 
 export class CreateSurveyDto {
   @IsString()
-  @IsNotEmpty()
   title: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   description?: string;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => QuestionDto)
-  questions: QuestionDto[];
+  @Type(() => CreateQuestionDto)
+  questions: CreateQuestionDto[];
+}
+
+export class SubmitAnswerDto {
+  @IsNumber()
+  questionId: number;
+
+  @IsString()
+  answer: string;
+
+  @IsOptional()
+  @IsNumber()
+  selected_option_id?: number;
+
+  @IsOptional()
+  @IsNumber()
+  rating_value?: number;
+}
+
+export class SubmitSurveyDto {
+  @IsString()
+  commitmentHash: string;
+
+  @IsString()
+  proof: string;
+
+  @IsString()
+  nullifier: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SubmitAnswerDto)
+  answers: SubmitAnswerDto[];
 }
 
 export class SurveyResponseDto {
   id: number;
   title: string;
-  description?: string;
+  description: string;
   status: string;
-  author: {
+  author?: {
     nickname: string;
-  } | null;
+  };
   questions: QuestionResponseDto[];
+  invitations: InvitationResponseDto[];
   created_at: Date;
-  invitations: {
-    id: number;
-    email: string;
-    uuid: string;
-    status: string;
-    created_at: Date;
-  }[];
 }
 
 export class QuestionResponseDto {
   id: number;
   text: string;
-  type: QuestionType;
+  type: string;
   order_index: number;
   is_required: boolean;
   options?: QuestionOptionResponseDto[];
@@ -95,39 +121,10 @@ export class QuestionOptionResponseDto {
   order_index: number;
 }
 
-export class AnswerDto {
-  @IsNumber()
-  @IsNotEmpty()
-  questionId: number;
-
-  @IsString()
-  @IsNotEmpty()
-  answer: string;
-
-  @IsNumber()
-  @IsOptional()
-  selected_option_id?: number;
-
-  @IsNumber()
-  @IsOptional()
-  rating_value?: number;
-}
-
-export class SubmitSurveyDto {
-  @IsString()
-  @IsNotEmpty()
-  commitmentHash: string;
-
-  @IsString()
-  @IsNotEmpty()
-  proof: string;
-
-  @IsString()
-  @IsNotEmpty()
-  nullifier: string;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => AnswerDto)
-  answers: AnswerDto[];
+export class InvitationResponseDto {
+  id: number;
+  email: string;
+  uuid: string;
+  status: string;
+  created_at: Date;
 }

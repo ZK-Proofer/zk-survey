@@ -433,7 +433,11 @@ export default function ParticipateSurvey() {
 
                 <div className="flex justify-end">
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "제출 중..." : "설문 제출"}
+                    {isGeneratingProof
+                      ? "증명 생성 중..."
+                      : isSubmitting
+                        ? "제출 중..."
+                        : "설문 제출"}
                   </Button>
                 </div>
               </form>
