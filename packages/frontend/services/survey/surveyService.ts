@@ -63,12 +63,14 @@ export interface VerificationResponse {
 
 export interface SurveyResponse {
   survey: Survey;
-  answers: Array<{
-    questionId: number;
-    answer?: string;
-    selected_option_id?: number;
-    rating_value?: number;
-  }>;
+  answers: Array<AnswerResponse>;
+}
+
+export interface AnswerResponse {
+  questionId: number;
+  answer?: string;
+  selected_option_id?: number;
+  rating_value?: number;
 }
 
 export class SurveyService {
@@ -224,7 +226,7 @@ export class SurveyService {
 
   static async getResponseByNullifier(
     nullifier: string
-  ): Promise<SurveyResponse> {
+  ): Promise<AnswerResponse[]> {
     const response = await fetch(
       `${BACKEND_URL}/api/v1/survey/response/${nullifier}`,
       {

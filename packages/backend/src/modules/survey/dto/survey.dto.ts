@@ -128,3 +128,23 @@ export class InvitationResponseDto {
   status: string;
   created_at: Date;
 }
+
+export class AnswerResponseDto {
+  questionId: number;
+  answer: string | null;
+  selected_option_id: number | null;
+  rating_value: number | null;
+}
+
+export class UpdateResponseDto {
+  @IsString()
+  proof: string;
+
+  @IsString()
+  newNullifier: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SubmitAnswerDto)
+  answers: SubmitAnswerDto[];
+}

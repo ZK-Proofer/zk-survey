@@ -12,9 +12,11 @@ import {
 } from '@nestjs/common';
 import { SurveyService } from './survey.service';
 import {
+  AnswerResponseDto,
   CreateSurveyDto,
   SubmitSurveyDto,
   SurveyResponseDto,
+  UpdateResponseDto,
 } from './dto/survey.dto';
 import {
   CreateInvitationDto,
@@ -174,5 +176,26 @@ export class SurveyController {
     @QueryRunnerDecorator() qr: QueryRunner,
   ): Promise<void> {
     return await this.surveyService.submitSurvey(uuid, submitSurveyDto, qr);
+  }
+
+  @Get('response/:nullifier')
+  async getResponseByNullifier(
+    @Param('nullifier') nullifier: string,
+  ): Promise<AnswerResponseDto[]> {
+    return await this.surveyService.getResponseByNullifier(nullifier);
+  }
+
+  @Put('response/:oldNullifier')
+  @UseInterceptors(TransactionInterceptor)
+  async updateResponse(
+    @Param('oldNullifier') oldNullifier: string,
+    @Body() updateResponseDto: UpdateResponseDto,
+    @QueryRunnerDecorator() qr: QueryRunner,
+  ): Promise<void> {
+    return await this.surveyService.updateResponse(
+      oldNullifier,
+      updateResponseDto,
+      qr,
+    );
   }
 }

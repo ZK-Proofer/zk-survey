@@ -14,7 +14,6 @@ import { SurveyInvitation } from './entity/survey-invitation.entity';
 import { Commitment } from '../auth/entity/commitment.entity';
 import { MerkleTreeModule } from '../merkletree/merkle-tree.module';
 import { VerifyModule } from '../verify/verify.module';
-import { Verification } from '../verify/entity/verification.entity';
 import { MemberModule } from '../member/member.module';
 import { AuthModule } from '../auth/auth.module';
 import { MailModule } from '../mail/mail.module';
@@ -29,7 +28,6 @@ import { MailModule } from '../mail/mail.module';
       Commitment,
       SurveyResponse,
       ResponseAnswer,
-      Verification,
     ]),
     MerkleTreeModule,
     VerifyModule,

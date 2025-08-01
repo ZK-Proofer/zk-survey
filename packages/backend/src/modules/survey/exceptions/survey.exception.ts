@@ -49,3 +49,9 @@ export class ProofVerificationException extends HttpException {
     super(message, HttpStatus.CONFLICT);
   }
 }
+
+export class SurveyResponseNotFoundException extends HttpException {
+  constructor(message: string = 'Survey response not found') {
+    super(message, HttpStatus.NOT_FOUND);
+  }
+}

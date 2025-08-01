@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UltraHonkBackend } from '@aztec/bb.js';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Verification } from './entity/verification.entity';
 import { QueryRunner, Repository } from 'typeorm';
 import { MerkleTreeService } from '../merkletree/merkle-tree.service';
 import circuit from './circuit/circuit.json';
@@ -9,17 +8,8 @@ import circuit from './circuit/circuit.json';
 @Injectable()
 export class VerifyService {
   private readonly honk: UltraHonkBackend;
-  constructor(
-    @InjectRepository(Verification)
-    private readonly verificationRepository: Repository<Verification>,
-    private readonly merkleTreeService: MerkleTreeService,
-  ) {
+  constructor(private readonly merkleTreeService: MerkleTreeService) {
     this.honk = new UltraHonkBackend(circuit.bytecode);
-  }
-
-  private getVerificationRepository(qr: QueryRunner) {
-    if (qr) return qr.manager.getRepository(Verification);
-    return this.verificationRepository;
   }
 
   async verify(proof: string, surveyId: number, nulifier: string) {

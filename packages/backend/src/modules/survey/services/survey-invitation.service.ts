@@ -18,7 +18,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { MerkleTreeService } from '../../merkletree/merkle-tree.service';
 import {
   SurveyNotFoundException,
-  SurveyClosedException,
   InvitationNotFoundException,
   InvitationAlreadyExistsException,
   CommitmentNotFoundException,
@@ -142,13 +141,6 @@ export class SurveyInvitationService {
 
     if (!invitation.survey) {
       throw new SurveyNotFoundException('Survey not found');
-    }
-
-    // 설문이 종료된 상태인지 확인
-    if (invitation.survey.status === SurveyStatus.CLOSED) {
-      throw new SurveyClosedException(
-        'This survey has been closed and is no longer accepting responses',
-      );
     }
 
     return invitation.survey;

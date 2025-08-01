@@ -10,9 +10,12 @@ import {
   SurveyService,
   Survey,
   SurveyResponse,
+  AnswerResponse,
 } from "@/services/survey/surveyService";
+import { SurveyParticipateForm } from "@/components/survey/SurveyParticipateForm";
+import { ZkUtil } from "@/lib/zk";
 
-interface ResponseAnswer {
+interface FormAnswer {
   questionId: number;
   answer?: string;
   selected_option_id?: number;
@@ -23,7 +26,7 @@ export default function MyResponsePage() {
   const [uuid, setUuid] = useState("");
   const [password, setPassword] = useState("");
   const [survey, setSurvey] = useState<Survey | null>(null);
-  const [response, setResponse] = useState<SurveyResponse | null>(null);
+  const [response, setResponse] = useState<AnswerResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -37,8 +40,10 @@ export default function MyResponsePage() {
       const surveyData = await SurveyService.getSurveyByUuid(uuid);
 
       // nullifier 생성
-      const nullifier = await import("@/lib/zk").then(({ ZkUtil }) =>
-        ZkUtil.makeNullifier(uuid, password, surveyData.id)
+      const nullifier = await ZkUtil.makeNullifier(
+        password,
+        uuid,
+        surveyData.id
       );
 
       // 응답 데이터 가져오기
@@ -59,22 +64,75 @@ export default function MyResponsePage() {
     setUuid("");
     setPassword("");
     setSurvey(null);
-    setResponse(null);
+    setResponse([]);
     setError("");
   };
 
-  const getQuestionAnswer = (questionId: number) => {
-    if (!response) return null;
-    return response.answers.find((answer) => answer.questionId === questionId);
-  };
+  const handleUpdateResponse = async (
+    answers: FormAnswer[],
+    password: string
+  ) => {
+    if (!response || !survey) {
+      throw new Error("응답 데이터가 없습니다.");
+    }
 
-  const getOptionText = (optionId?: number) => {
-    if (!optionId || (!response && !survey)) return "";
-    const questions = response?.survey.questions || survey?.questions;
-    const question = questions?.find((q) =>
-      q.options?.some((opt) => opt.id === optionId)
+    // 새로운 커밋먼트 해시 생성
+    const newCommitmentHash = await ZkUtil.makeCommitment(password, uuid);
+
+    // 백엔드에 커밋먼트 검증 요청
+    const verifyResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/invitation/${uuid}/commitment/verify`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ commitmentHash: newCommitmentHash }),
+      }
     );
-    return question?.options?.find((opt) => opt.id === optionId)?.text || "";
+
+    const oldNullifier = await ZkUtil.makeNullifier(password, uuid, survey.id);
+
+    if (!verifyResponse.ok) {
+      const errorData = await verifyResponse.json();
+      throw new Error(errorData.message || "비밀번호가 올바르지 않습니다.");
+    }
+
+    const leaves = (await verifyResponse.json()).leaves;
+
+    const { proof, nullifier: newNullifier } = await ZkUtil.generateProof(
+      password,
+      uuid,
+      survey.id,
+      leaves
+    );
+
+    // 백엔드에 응답 업데이트 요청
+    const updateResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/survey/response/${oldNullifier}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          proof,
+          newNullifier,
+          answers,
+        }),
+      }
+    );
+
+    if (updateResponse.ok) {
+      // 업데이트된 응답 다시 가져오기
+      const updatedResponse =
+        await SurveyService.getResponseByNullifier(newNullifier);
+      setResponse(updatedResponse);
+      alert("응답이 성공적으로 수정되었습니다!");
+    } else {
+      const errorData = await updateResponse.json();
+      throw new Error(errorData.message || "응답 수정에 실패했습니다.");
+    }
   };
 
   return (
@@ -119,107 +177,29 @@ export default function MyResponsePage() {
                     {loading ? "확인 중..." : "응답 확인하기"}
                   </Button>
                 </form>
-              ) : (
-                <div className="space-y-6">
-                  {/* 설문 정보 */}
-                  <div className="bg-white p-6 rounded-lg border">
-                    <h2 className="text-xl font-semibold mb-2">
-                      {response?.survey.title || survey?.title}
-                    </h2>
-                    {(response?.survey.description || survey?.description) && (
-                      <p className="text-gray-600 mb-4">
-                        {response?.survey.description || survey?.description}
-                      </p>
-                    )}
-                    {(response?.survey.author || survey?.author) && (
-                      <p className="text-sm text-gray-500">
-                        작성자:{" "}
-                        {(response?.survey.author || survey?.author)?.nickname}
-                      </p>
-                    )}
-                  </div>
+              ) : response && survey ? (
+                <SurveyParticipateForm
+                  survey={{
+                    id: survey.id,
+                    title: survey.title,
+                    description: survey.description,
+                    questions: survey.questions,
+                    author: survey.author,
+                  }}
+                  initialAnswers={response}
+                  isEditMode={true}
+                  onSubmit={handleUpdateResponse}
+                />
+              ) : null}
 
-                  {/* 질문과 답변 */}
-                  <div className="space-y-4">
-                    {(response?.survey.questions || survey?.questions)?.map(
-                      (question, index) => {
-                        const answer = getQuestionAnswer(question.id);
-                        const hasAnswer =
-                          answer &&
-                          (answer.answer ||
-                            answer.selected_option_id ||
-                            answer.rating_value);
-
-                        return (
-                          <div
-                            key={question.id}
-                            className={`bg-white p-6 rounded-lg border ${
-                              hasAnswer ? "border-green-200" : "border-red-200"
-                            }`}
-                          >
-                            <div className="flex items-start gap-2 mb-3">
-                              <span className="text-sm font-medium text-gray-500">
-                                Q{index + 1}.
-                              </span>
-                              <h3 className="font-medium flex-1">
-                                {question.text}
-                              </h3>
-                              <span
-                                className={`text-xs px-2 py-1 rounded ${
-                                  hasAnswer
-                                    ? "bg-green-100 text-green-800"
-                                    : "bg-red-100 text-red-800"
-                                }`}
-                              >
-                                {hasAnswer ? "답변완료" : "미답변"}
-                              </span>
-                            </div>
-
-                            <div className="ml-6">
-                              {question.type === "TEXT" && (
-                                <div className="text-gray-700">
-                                  {answer?.answer || "답변 없음"}
-                                </div>
-                              )}
-
-                              {question.type === "SINGLE_CHOICE" && (
-                                <div className="text-gray-700">
-                                  {answer?.selected_option_id
-                                    ? getOptionText(answer.selected_option_id)
-                                    : "답변 없음"}
-                                </div>
-                              )}
-
-                              {question.type === "MULTIPLE_CHOICE" && (
-                                <div className="text-gray-700">
-                                  {answer?.selected_option_id
-                                    ? getOptionText(answer.selected_option_id)
-                                    : "답변 없음"}
-                                </div>
-                              )}
-
-                              {question.type === "RATING" && (
-                                <div className="text-gray-700">
-                                  {answer?.rating_value
-                                    ? `${answer.rating_value}점`
-                                    : "답변 없음"}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      }
-                    )}
-                  </div>
-
-                  <Button
-                    onClick={handleReset}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    다른 응답 확인하기
-                  </Button>
-                </div>
+              {survey && (
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="w-full mt-4"
+                >
+                  다른 응답 확인하기
+                </Button>
               )}
             </CardContent>
           </Card>

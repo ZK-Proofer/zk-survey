@@ -19,7 +19,6 @@ import { SurveyInvitation } from './modules/survey/entity/survey-invitation.enti
 import { Commitment } from './modules/auth/entity/commitment.entity';
 import { SurveyResponse } from './modules/survey/entity/survey-response.entity';
 import { ResponseAnswer } from './modules/survey/entity/response-answer.entity';
-import { Verification } from './modules/verify/entity/verification.entity';
 import {
   ENV_DB_HOST_KEY,
   ENV_DB_PORT_KEY,
@@ -57,7 +56,6 @@ import { MailModule } from './modules/mail/mail.module';
         Commitment,
         SurveyResponse,
         ResponseAnswer,
-        Verification,
         MerkleTree,
       ],
       synchronize: false,

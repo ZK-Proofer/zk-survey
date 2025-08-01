@@ -5,8 +5,11 @@ import { SurveyResponse } from '../entity/survey-response.entity';
 import { ResponseAnswer } from '../entity/response-answer.entity';
 import { SurveyInvitation } from '../entity/survey-invitation.entity';
 import { Commitment } from '../../auth/entity/commitment.entity';
-import { Verification } from '../../verify/entity/verification.entity';
-import { SubmitSurveyDto } from '../dto/survey.dto';
+import {
+  AnswerResponseDto,
+  SubmitSurveyDto,
+  UpdateResponseDto,
+} from '../dto/survey.dto';
 import { SurveyStatus } from '../const/survey-status.const';
 import { VerifyService } from '../../verify/verify.service';
 import { MailService } from '../../mail/mail.service';
@@ -16,6 +19,7 @@ import {
   CommitmentNotFoundException,
   CommitmentInvalidException,
   ProofVerificationException,
+  SurveyResponseNotFoundException,
 } from '../exceptions/survey.exception';
 import { SubmitSurveyRequest } from '../interfaces/survey.interface';
 import { SurveyResponseDto } from '../dto/survey.dto';
@@ -30,8 +34,6 @@ export class SurveyResponseService {
     private surveyInvitationRepository: Repository<SurveyInvitation>,
     @InjectRepository(Commitment)
     private commitmentRepository: Repository<Commitment>,
-    @InjectRepository(Verification)
-    private verificationRepository: Repository<Verification>,
     private verifyService: VerifyService,
     private mailService: MailService,
   ) {}
@@ -60,12 +62,6 @@ export class SurveyResponseService {
       : this.commitmentRepository;
   }
 
-  private getVerificationRepository(qr?: QueryRunner) {
-    return qr
-      ? qr.manager.getRepository<Verification>(Verification)
-      : this.verificationRepository;
-  }
-
   async submitSurvey(
     uuid: string,
     submitSurveyDto: SubmitSurveyRequest,
@@ -73,7 +69,6 @@ export class SurveyResponseService {
   ): Promise<void> {
     const surveyInvitationRepository = this.getSurveyInvitationRepository(qr);
     const commitmentRepository = this.getCommitmentRepository(qr);
-    const verificationRepository = this.getVerificationRepository(qr);
     const surveyResponseRepository = this.getSurveyResponseRepository(qr);
     const responseAnswerRepository = this.getResponseAnswerRepository(qr);
 
@@ -117,18 +112,12 @@ export class SurveyResponseService {
       throw new ProofVerificationException(error.message);
     }
 
-    const verification = new Verification();
-    verification.nullifier_hash = submitSurveyDto.nullifier;
-
     // 설문 응답 저장
     const surveyResponse = new SurveyResponse();
     surveyResponse.survey_id = surveyInvitation.survey.id;
     surveyResponse.nullifier_hash = submitSurveyDto.nullifier;
 
     const savedResponse = await surveyResponseRepository.save(surveyResponse);
-
-    verification.response_id = savedResponse.id;
-    await verificationRepository.save(verification);
 
     // 답변들 저장
     const answers = submitSurveyDto.answers.map((answerDto) => {
@@ -164,5 +153,73 @@ export class SurveyResponseService {
       relations: ['answers'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async getSurveyResponsesByNullifier(
+    nullifier: string,
+  ): Promise<AnswerResponseDto[]> {
+    const surveyResponse = await this.surveyResponseRepository.findOne({
+      where: { nullifier_hash: nullifier },
+      relations: ['answers'],
+    });
+
+    if (!surveyResponse) {
+      throw new SurveyResponseNotFoundException('Survey response not found');
+    }
+
+    return surveyResponse.answers.map((answer) => {
+      return {
+        questionId: answer.question_id,
+        answer: answer.answer_text,
+        selected_option_id: answer.selected_option_id,
+        rating_value: answer.rating_value,
+      };
+    });
+  }
+
+  async updateResponse(
+    oldNullifier: string,
+    updateResponseDto: UpdateResponseDto,
+    qr?: QueryRunner,
+  ): Promise<void> {
+    const surveyResponseRepository = this.getSurveyResponseRepository(qr);
+    const responseAnswerRepository = this.getResponseAnswerRepository(qr);
+
+    const surveyResponse = await surveyResponseRepository.findOne({
+      where: { nullifier_hash: oldNullifier },
+      relations: ['answers', 'survey'],
+    });
+
+    if (!surveyResponse) {
+      throw new SurveyResponseNotFoundException('Survey response not found');
+    }
+
+    // proof 다시 검증
+    try {
+      await this.verifyService.verify(
+        updateResponseDto.proof,
+        surveyResponse.survey.id,
+        updateResponseDto.newNullifier,
+      );
+    } catch (error) {
+      throw new ProofVerificationException(error.message);
+    }
+
+    surveyResponse.nullifier_hash = updateResponseDto.newNullifier;
+
+    // 기존 답변들을 업데이트
+    for (const answer of surveyResponse.answers) {
+      const existingAnswer = updateResponseDto.answers.find(
+        (a) => a.questionId === answer.question_id,
+      );
+      if (existingAnswer) {
+        answer.answer_text = existingAnswer.answer;
+        answer.selected_option_id = existingAnswer.selected_option_id || null;
+        answer.rating_value = existingAnswer.rating_value || null;
+      }
+    }
+
+    // 업데이트된 답변들을 저장
+    await responseAnswerRepository.save(surveyResponse.answers);
   }
 }

@@ -4,7 +4,12 @@ import { QueryRunner, Repository } from 'typeorm';
 import { Survey } from './entity/survey.entity';
 import { Question } from './entity/question.entity';
 import { QuestionOption } from './entity/question-option.entity';
-import { CreateSurveyDto, SurveyResponseDto } from './dto/survey.dto';
+import {
+  CreateSurveyDto,
+  SurveyResponseDto,
+  AnswerResponseDto,
+  UpdateResponseDto,
+} from './dto/survey.dto';
 import { SurveyStatus } from './const/survey-status.const';
 import { MerkleTreeService } from '../merkletree/merkle-tree.service';
 import { SurveyInvitationService } from './services/survey-invitation.service';
@@ -298,6 +303,26 @@ export class SurveyService {
     return await this.surveyResultService.getSurveyResults(id, authorId);
   }
 
+  async getResponseByNullifier(
+    nullifier: string,
+  ): Promise<AnswerResponseDto[]> {
+    const surveyResponse =
+      await this.surveyResponseService.getSurveyResponsesByNullifier(nullifier);
+
+    return surveyResponse;
+  }
+
+  async updateResponse(
+    nullifier: string,
+    updateResponseDto: UpdateResponseDto,
+    qr?: QueryRunner,
+  ): Promise<void> {
+    return await this.surveyResponseService.updateResponse(
+      nullifier,
+      updateResponseDto,
+      qr,
+    );
+  }
   // 헬퍼 메서드들
   private async createQuestions(
     surveyId: number,
