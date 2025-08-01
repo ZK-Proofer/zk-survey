@@ -31,7 +31,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LogMiddleware } from './common/middleware/log.middleware';
 import { MemberModule } from './modules/member/member.module';
 import { VerifyModule } from './modules/verify/verify.module';
-import { MerkleTreeModule } from './modules/merkletree/merkletree.module';
+import { MerkleTreeModule } from './modules/merkletree/merkle-tree.module';
 import { MerkleTree } from './modules/merkletree/entity/merkle-tree.entity';
 
 @Module({

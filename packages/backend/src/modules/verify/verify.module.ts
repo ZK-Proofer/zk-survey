@@ -3,7 +3,7 @@ import { VerifyService } from './verify.service';
 import { VerifyController } from './verify.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Verification } from './entity/verification.entity';
-import { MerkleTreeModule } from '../merkletree/merkletree.module';
+import { MerkleTreeModule } from '../merkletree/merkle-tree.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Verification]), MerkleTreeModule],

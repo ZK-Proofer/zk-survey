@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
-import { MerkleTreeService } from './merkletree.service';
-import { MerkleTreeLeavesDto } from './dto/merkletree.dto';
+import { MerkleTreeService } from './merkle-tree.service';
+import { MerkleTreeLeavesDto } from './dto/merkle-tree.dto';
 
 @Controller('merkletree')
 export class MerkleTreeController {

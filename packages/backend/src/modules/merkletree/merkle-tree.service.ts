@@ -5,7 +5,7 @@ import { MERKLE_ARITY } from './const/merkle.const';
 import { QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MerkleTree } from './entity/merkle-tree.entity';
-import { MerkleTreeLeavesDto } from './dto/merkletree.dto';
+import { MerkleTreeLeavesDto } from './dto/merkle-tree.dto';
 @Injectable()
 export class MerkleTreeService implements OnModuleInit {
   private hashFn: (inputs: IMTNode[]) => IMTNode;

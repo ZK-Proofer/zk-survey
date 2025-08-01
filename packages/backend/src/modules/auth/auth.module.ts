@@ -6,7 +6,7 @@ import { AuthService } from './auth.service';
 import { Member } from '../member/entity/member.entity';
 import { Commitment } from './entity/commitment.entity';
 import { MemberModule } from '../member/member.module';
-import { MerkleTreeModule } from '../merkletree/merkletree.module';
+import { MerkleTreeModule } from '../merkletree/merkle-tree.module';
 
 @Module({
   imports: [
