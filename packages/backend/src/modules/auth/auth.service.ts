@@ -11,7 +11,7 @@ import {
 } from '../../common/const/env-keys.const';
 import { CommitmentDto, LoginResponseDto } from './dto/auth.dto';
 import axios from 'axios';
-import { MerkleTreeService } from '../merkletree/merkletree.service';
+import { MerkleTreeService } from '../merkletree/merkle-tree.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Commitment } from './entity/commitment.entity';
 import { QueryRunner, Repository } from 'typeorm';

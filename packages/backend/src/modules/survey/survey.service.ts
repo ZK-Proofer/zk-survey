@@ -26,8 +26,8 @@ import {
 import { SurveyStatus } from './const/survey-status.const';
 import { InvitationStatus } from './const/invitation-status.const';
 import { v4 as uuidv4 } from 'uuid';
-import { MerkleTreeResponseDto } from './dto/merkle-tree.dto';
-import { MerkleTreeService } from '../merkletree/merkletree.service';
+import { MerkleTreeResponseDto } from '../merkletree/dto/merkle-tree.dto';
+import { MerkleTreeService } from '../merkletree/merkle-tree.service';
 import { VerifyService } from '../verify/verify.service';
 import { SurveyResponse } from './entity/survey-response.entity';
 import { ResponseAnswer } from './entity/response-answer.entity';

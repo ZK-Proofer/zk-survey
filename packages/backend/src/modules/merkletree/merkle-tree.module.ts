@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MerkleTreeService } from './merkletree.service';
+import { MerkleTreeService } from './merkle-tree.service';
+import { MerkleTreeController } from './merkle-tree.controller';
 import { MerkleTree } from './entity/merkle-tree.entity';
-import { MerkleTreeController } from './merkletree.controller';
 @Module({
   imports: [TypeOrmModule.forFeature([MerkleTree])],
   controllers: [MerkleTreeController],

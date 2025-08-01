@@ -3,7 +3,7 @@ import { UltraHonkBackend } from '@aztec/bb.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Verification } from './entity/verification.entity';
 import { QueryRunner, Repository } from 'typeorm';
-import { MerkleTreeService } from '../merkletree/merkletree.service';
+import { MerkleTreeService } from '../merkletree/merkle-tree.service';
 import circuit from './circuit/circuit.json';
 
 @Injectable()

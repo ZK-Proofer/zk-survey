@@ -30,7 +30,7 @@ import { SurveyStatus } from './const/survey-status.const';
 import { TransactionInterceptor } from '../../common/interceptor/transaction.interceptor';
 import { QueryRunnerDecorator } from '../../common/decorator/query-runner.decorator';
 import { QueryRunner } from 'typeorm';
-import { MerkleTreeResponseDto } from './dto/merkle-tree.dto';
+import { MerkleTreeResponseDto } from '../merkletree/dto/merkle-tree.dto';
 @Controller({ path: 'survey', version: '1' })
 export class SurveyController {
   constructor(private readonly surveyService: SurveyService) {}
