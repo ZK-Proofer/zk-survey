@@ -14,6 +14,7 @@ import {
 } from "@/services/survey/surveyService";
 import { SurveyParticipateForm } from "@/components/survey/SurveyParticipateForm";
 import { ZkUtil } from "@/lib/zk";
+import { toast } from "sonner";
 
 interface FormAnswer {
   questionId: number;
@@ -128,7 +129,7 @@ export default function MyResponsePage() {
       const updatedResponse =
         await SurveyService.getResponseByNullifier(newNullifier);
       setResponse(updatedResponse);
-      alert("응답이 성공적으로 수정되었습니다!");
+      toast.success("응답이 성공적으로 수정되었습니다!");
     } else {
       const errorData = await updateResponse.json();
       throw new Error(errorData.message || "응답 수정에 실패했습니다.");
@@ -144,7 +145,7 @@ export default function MyResponsePage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl font-bold text-center">
-                내 응답 확인하기
+                My Response
               </CardTitle>
             </CardHeader>
             <CardContent>

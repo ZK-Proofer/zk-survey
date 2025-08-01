@@ -55,7 +55,7 @@ export function Header() {
                   variant="ghost"
                   className="text-sm lg:text-base"
                 >
-                  <Link href="/my-response">내 응답 확인</Link>
+                  <Link href="/my-response">My Response</Link>
                 </Button>
                 <div className="flex items-center space-x-3 lg:space-x-4">
                   <span className="text-sm text-gray-600 hidden lg:block">
@@ -84,7 +84,7 @@ export function Header() {
                   variant="ghost"
                   className="text-sm lg:text-base"
                 >
-                  <Link href="/my-response">내 응답 확인</Link>
+                  <Link href="/my-response">My Response</Link>
                 </Button>
               </>
             )}
@@ -138,7 +138,7 @@ export function Header() {
                     className="justify-start text-left"
                   >
                     <Link href="/my-response" onClick={closeMobileMenu}>
-                      내 응답 확인
+                      My Response
                     </Link>
                   </Button>
                   <div className="pt-2 border-t border-gray-200">
@@ -174,7 +174,7 @@ export function Header() {
                     className="justify-start text-left"
                   >
                     <Link href="/my-response" onClick={closeMobileMenu}>
-                      내 응답 확인
+                      My Response
                     </Link>
                   </Button>
                 </>

@@ -6,6 +6,7 @@ import { ZkUtil } from "@/lib/zk";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorDisplay } from "@/components/common/ErrorDisplay";
 import { SurveyParticipateForm } from "@/components/survey/SurveyParticipateForm";
+import { toast } from "sonner";
 
 interface SurveyData {
   id: number;
@@ -134,7 +135,7 @@ export default function ParticipateSurvey() {
     );
 
     if (submitResponse.ok) {
-      alert("설문이 성공적으로 제출되었습니다!");
+      toast.success("설문이 성공적으로 제출되었습니다!");
       router.push(`/survey/${uuid}/complete`);
     } else {
       const errorData = await submitResponse.json();

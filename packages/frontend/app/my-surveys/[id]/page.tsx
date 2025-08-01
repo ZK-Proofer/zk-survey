@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import { toast } from "sonner";
 interface Survey {
   id: number;
   title: string;
@@ -43,6 +43,7 @@ export default function SurveyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [invitationLink, setInvitationLink] = useState<string | null>(null);
+  const [isMailSending, setIsMailSending] = useState(false);
   const [isCreatingInvitation, setIsCreatingInvitation] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -146,10 +147,10 @@ export default function SurveyDetailPage() {
 
       // 설문 상태 업데이트
       setSurvey((prev) => (prev ? { ...prev, status: "ACTIVE" } : null));
-      alert("설문이 성공적으로 발행되었습니다!");
+      toast.success("설문이 성공적으로 발행되었습니다!");
     } catch (err) {
       console.error("Failed to publish survey:", err);
-      alert("설문 발행에 실패했습니다.");
+      toast.error("설문 발행에 실패했습니다.");
     } finally {
       setIsPublishing(false);
     }
@@ -192,10 +193,10 @@ export default function SurveyDetailPage() {
 
       // 설문 상태 업데이트
       setSurvey((prev) => (prev ? { ...prev, status: "CLOSED" } : null));
-      alert("설문이 성공적으로 종료되었습니다!");
+      toast.success("설문이 성공적으로 종료되었습니다!");
     } catch (err) {
       console.error("Failed to close survey:", err);
-      alert("설문 종료에 실패했습니다.");
+      toast.error("설문 종료에 실패했습니다.");
     } finally {
       setIsClosing(false);
     }
@@ -222,7 +223,7 @@ export default function SurveyDetailPage() {
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      alert("올바른 이메일 주소를 입력해주세요.");
+      toast.error("올바른 이메일 주소를 입력해주세요.");
       return;
     }
 
@@ -262,10 +263,10 @@ export default function SurveyDetailPage() {
       setInvitations((prev) => [...prev, newInvitation]);
 
       setEmail(""); // 이메일 입력 필드 초기화
-      alert("초대링크가 성공적으로 생성되었습니다!");
+      toast.success("초대링크가 성공적으로 생성되었습니다!");
     } catch (err) {
       console.error("Failed to create invitation:", err);
-      alert(
+      toast.error(
         err instanceof Error ? err.message : "초대링크 생성에 실패했습니다."
       );
     } finally {
@@ -276,7 +277,7 @@ export default function SurveyDetailPage() {
   const copyInvitationLink = (uuid: string) => {
     const link = `${window.location.origin}/survey/${uuid}`;
     navigator.clipboard.writeText(link);
-    alert("초대링크가 복사되었습니다!");
+    toast.success("초대링크가 복사되었습니다!");
   };
 
   const handleCopyLink = (uuid: string) => (e: React.MouseEvent) => {
@@ -301,10 +302,11 @@ export default function SurveyDetailPage() {
       e.preventDefault();
 
       if (!survey) {
-        alert("설문을 찾을 수 없습니다.");
+        toast.error("설문을 찾을 수 없습니다.");
         return;
       }
 
+      setIsMailSending(true);
       const token = localStorage.getItem("accessToken");
       if (!token) {
         router.push("/login");
@@ -328,12 +330,13 @@ export default function SurveyDetailPage() {
           }),
         }
       );
+      setIsMailSending(false);
 
       if (!response.ok) {
         throw new Error("Failed to send invitation");
       }
 
-      alert("초대링크가 성공적으로 전송되었습니다!");
+      toast.success("초대링크가 성공적으로 전송되었습니다!");
     };
 
   if (loading) {
@@ -633,8 +636,16 @@ export default function SurveyDetailPage() {
                             )}
                             variant="default"
                             size="sm"
+                            disabled={isMailSending}
                           >
-                            전송
+                            {isMailSending ? (
+                              <div className="flex items-center">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                전송 중...
+                              </div>
+                            ) : (
+                              "전송"
+                            )}
                           </Button>
                           <Button
                             onClick={handleCopyLink(invitation.uuid)}

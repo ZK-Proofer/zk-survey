@@ -15,6 +15,7 @@ import {
 import { ZkUtil } from "@/lib/zk";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { ErrorDisplay } from "@/components/common/ErrorDisplay";
+import { toast } from "sonner";
 
 interface SurveyInfo {
   id: number;
@@ -83,7 +84,7 @@ export default function SurveyInvitationPage() {
     e.preventDefault();
 
     if (!password.trim()) {
-      alert("비밀번호를 입력해주세요.");
+      toast.error("비밀번호를 입력해주세요.");
       return;
     }
 
@@ -113,7 +114,7 @@ export default function SurveyInvitationPage() {
       router.push(`/survey/${uuid}/participate?hash=${commitmentHash}`);
     } catch (err) {
       console.error("Commitment verification failed:", err);
-      alert(
+      toast.error(
         err instanceof Error ? err.message : "비밀번호 확인에 실패했습니다."
       );
     } finally {

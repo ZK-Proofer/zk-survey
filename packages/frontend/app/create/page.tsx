@@ -17,6 +17,7 @@ import { SurveyBasicInfo } from "@/components/survey/SurveyBasicInfo";
 import { QuestionForm } from "@/components/survey/QuestionForm";
 import { SurveyService } from "@/services/survey/surveyService";
 import { Question } from "@/hooks/survey/useCreateSurvey";
+import { toast } from "sonner";
 
 interface SurveyData {
   title: string;
@@ -98,11 +99,12 @@ function CreateSurveyContent() {
       if (isEditMode && editId) {
         // 수정 모드
         await SurveyService.updateSurvey(parseInt(editId), transformedData);
-        alert("설문이 성공적으로 수정되었습니다!");
+        toast.success("설문이 성공적으로 수정되었습니다!");
         router.push(`/my-surveys/${editId}`);
       } else {
         // 생성 모드
         const result = await SurveyService.createSurvey(transformedData);
+        toast.success("설문이 성공적으로 생성되었습니다!");
         router.push(`/my-surveys/${result.id}`);
       }
     } catch (err) {
