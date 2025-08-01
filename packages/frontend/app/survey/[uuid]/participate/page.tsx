@@ -218,6 +218,7 @@ export default function ParticipateSurvey() {
             nullifier,
             answers,
             commitmentHash: newCommitmentHash,
+            resultLink: `${window.location.origin}/my-response`,
           }),
         }
       );

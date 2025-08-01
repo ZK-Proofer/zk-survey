@@ -58,6 +58,7 @@ export interface SubmitSurveyRequest {
   proof: string;
   nullifier: string;
   answers: SubmitAnswerRequest[];
+  resultLink: string;
 }
 
 export interface SubmitAnswerRequest {

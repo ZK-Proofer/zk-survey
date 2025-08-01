@@ -31,6 +31,7 @@ import { TransactionInterceptor } from '../../common/interceptor/transaction.int
 import { QueryRunnerDecorator } from '../../common/decorator/query-runner.decorator';
 import { QueryRunner } from 'typeorm';
 import { MerkleTreeResponseDto } from '../merkletree/dto/merkle-tree.dto';
+import { SubmitSurveyRequest } from './interfaces/survey.interface';
 @Controller({ path: 'survey', version: '1' })
 export class SurveyController {
   constructor(private readonly surveyService: SurveyService) {}
@@ -169,7 +170,7 @@ export class SurveyController {
   @UseInterceptors(TransactionInterceptor)
   async submitSurvey(
     @Param('uuid') uuid: string,
-    @Body() submitSurveyDto: SubmitSurveyDto,
+    @Body() submitSurveyDto: SubmitSurveyRequest,
     @QueryRunnerDecorator() qr: QueryRunner,
   ): Promise<void> {
     return await this.surveyService.submitSurvey(uuid, submitSurveyDto, qr);

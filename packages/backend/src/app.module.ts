@@ -33,6 +33,7 @@ import { MemberModule } from './modules/member/member.module';
 import { VerifyModule } from './modules/verify/verify.module';
 import { MerkleTreeModule } from './modules/merkletree/merkle-tree.module';
 import { MerkleTree } from './modules/merkletree/entity/merkle-tree.entity';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { MerkleTree } from './modules/merkletree/entity/merkle-tree.entity';
     MemberModule,
     VerifyModule,
     MerkleTreeModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

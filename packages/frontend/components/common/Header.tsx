@@ -50,6 +50,13 @@ export function Header() {
                 >
                   <Link href="/my-surveys">My Surveys</Link>
                 </Button>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="text-sm lg:text-base"
+                >
+                  <Link href="/my-response">내 응답 확인</Link>
+                </Button>
                 <div className="flex items-center space-x-3 lg:space-x-4">
                   <span className="text-sm text-gray-600 hidden lg:block">
                     Welcome, {user.nickname || user.email}!
@@ -64,9 +71,22 @@ export function Header() {
                 </div>
               </>
             ) : (
-              <Button asChild variant="ghost" className="text-sm lg:text-base">
-                <Link href="/login">Login</Link>
-              </Button>
+              <>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="text-sm lg:text-base"
+                >
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="text-sm lg:text-base"
+                >
+                  <Link href="/my-response">내 응답 확인</Link>
+                </Button>
+              </>
             )}
           </nav>
 
@@ -112,6 +132,15 @@ export function Header() {
                       My Surveys
                     </Link>
                   </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="justify-start text-left"
+                  >
+                    <Link href="/my-response" onClick={closeMobileMenu}>
+                      내 응답 확인
+                    </Link>
+                  </Button>
                   <div className="pt-2 border-t border-gray-200">
                     <div className="px-3 py-2 text-sm text-gray-600">
                       Welcome, {user.nickname || user.email}!
@@ -129,15 +158,26 @@ export function Header() {
                   </div>
                 </>
               ) : (
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="justify-start text-left"
-                >
-                  <Link href="/login" onClick={closeMobileMenu}>
-                    Login
-                  </Link>
-                </Button>
+                <>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="justify-start text-left"
+                  >
+                    <Link href="/login" onClick={closeMobileMenu}>
+                      Login
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="justify-start text-left"
+                  >
+                    <Link href="/my-response" onClick={closeMobileMenu}>
+                      내 응답 확인
+                    </Link>
+                  </Button>
+                </>
               )}
             </nav>
           </div>

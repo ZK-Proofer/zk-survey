@@ -61,6 +61,16 @@ export interface VerificationResponse {
   message?: string;
 }
 
+export interface SurveyResponse {
+  survey: Survey;
+  answers: Array<{
+    questionId: number;
+    answer?: string;
+    selected_option_id?: number;
+    rating_value?: number;
+  }>;
+}
+
 export class SurveyService {
   private static getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem("accessToken");
@@ -207,6 +217,24 @@ export class SurveyService {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || "Invalid commitment");
+    }
+
+    return response.json();
+  }
+
+  static async getResponseByNullifier(
+    nullifier: string
+  ): Promise<SurveyResponse> {
+    const response = await fetch(
+      `${BACKEND_URL}/api/v1/survey/response/${nullifier}`,
+      {
+        method: "GET",
+        headers: this.getAuthHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to get response by nullifier");
     }
 
     return response.json();

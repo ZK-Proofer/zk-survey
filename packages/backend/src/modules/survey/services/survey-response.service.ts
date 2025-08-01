@@ -9,6 +9,7 @@ import { Verification } from '../../verify/entity/verification.entity';
 import { SubmitSurveyDto } from '../dto/survey.dto';
 import { SurveyStatus } from '../const/survey-status.const';
 import { VerifyService } from '../../verify/verify.service';
+import { MailService } from '../../mail/mail.service';
 import {
   SurveyClosedException,
   InvitationNotFoundException,
@@ -17,7 +18,7 @@ import {
   ProofVerificationException,
 } from '../exceptions/survey.exception';
 import { SubmitSurveyRequest } from '../interfaces/survey.interface';
-
+import { SurveyResponseDto } from '../dto/survey.dto';
 @Injectable()
 export class SurveyResponseService {
   constructor(
@@ -32,6 +33,7 @@ export class SurveyResponseService {
     @InjectRepository(Verification)
     private verificationRepository: Repository<Verification>,
     private verifyService: VerifyService,
+    private mailService: MailService,
   ) {}
 
   private getSurveyResponseRepository(qr?: QueryRunner) {
@@ -66,7 +68,7 @@ export class SurveyResponseService {
 
   async submitSurvey(
     uuid: string,
-    submitSurveyDto: SubmitSurveyDto,
+    submitSurveyDto: SubmitSurveyRequest,
     qr?: QueryRunner,
   ): Promise<void> {
     const surveyInvitationRepository = this.getSurveyInvitationRepository(qr);
@@ -140,6 +142,20 @@ export class SurveyResponseService {
     });
 
     await responseAnswerRepository.save(answers);
+
+    // 설문 완료 메일 발송
+    try {
+      await this.mailService.sendSurveyCompletionThankYou(
+        surveyInvitation.email,
+        surveyInvitation.survey.title,
+        surveyInvitation.survey.description,
+        uuid,
+        submitSurveyDto.resultLink,
+      );
+    } catch (error) {
+      // 메일 발송 실패 시에도 설문 제출은 성공으로 처리
+      console.error('Failed to send completion email:', error);
+    }
   }
 
   async getSurveyResponses(surveyId: number): Promise<SurveyResponse[]> {

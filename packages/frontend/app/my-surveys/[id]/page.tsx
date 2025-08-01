@@ -295,9 +295,46 @@ export default function SurveyDetailPage() {
     deleteInvitation(email);
   };
 
-  const handleSendInvitation = (uuid: string) => (e: React.MouseEvent) => {
-    e.preventDefault();
-  };
+  const handleSendInvitation =
+    (to: string, uuid: string, invitationLink: string) =>
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+
+      if (!survey) {
+        alert("설문을 찾을 수 없습니다.");
+        return;
+      }
+
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:9111"}/api/v1/mail/survey-invitation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            to,
+            surveyUuid: uuid,
+            surveyTitle: survey.title,
+            surveyDescription: survey.description,
+            invitationLink: invitationLink,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send invitation");
+      }
+
+      alert("초대링크가 성공적으로 전송되었습니다!");
+    };
 
   if (loading) {
     return (
@@ -589,7 +626,11 @@ export default function SurveyDetailPage() {
                         </div>
                         <div className="flex space-x-2">
                           <Button
-                            onClick={handleSendInvitation(invitation.uuid)}
+                            onClick={handleSendInvitation(
+                              invitation.email,
+                              invitation.uuid,
+                              `${window.location.origin}/survey/${invitation.uuid}`
+                            )}
                             variant="default"
                             size="sm"
                           >
